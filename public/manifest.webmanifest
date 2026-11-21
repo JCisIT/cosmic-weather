@@ -2,9 +2,9 @@
   "name": "Cosmic Weather",
   "short_name": "Cosmic Weather",
   "description": "Your daily sky, by Joyful Purpose Coaching",
-  "start_url": "/",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#F2ECFF",
   "theme_color": "#2A1140",
-  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
 }
