@@ -97,6 +97,22 @@ export const LESSONS = [
   ['Gene Keys', 'Gene Keys uses the same 64 gates and describes each on a spectrum: a shadow (the fearful version), a gift (the healthy version) and a siddhi (its highest expression).'],
 ]
 
+// A playful reading of a place's weather through the person's type. This is starter copy, not Human Design
+// doctrine: it borrows each type's strategy and applies it to the mood of the weather there.
+const MOOD = {
+  open: { Generator: 'good energy to respond to, if your gut says yes', 'Manifesting Generator': 'room to move fast on whatever lights you up', Projector: 'the kind of day people there would welcome your insight, if they ask', Manifestor: 'an opening to start something, once you have told the people it touches', Reflector: 'a clear mirror, and you would feel that place at its best' },
+  inward: { Generator: 'a time for the work you already love, and letting the rest wait', 'Manifesting Generator': 'a time to finish one thing before starting three', Projector: 'made for resting and watching, which is your real work', Manifestor: 'a time to rest between your bursts', Reflector: 'a quiet sample of that place, with nothing to decide' },
+  charged: { Generator: 'notice what your gut pulls toward and away from', 'Manifesting Generator': 'let the first response settle before you leap', Projector: 'stay out of the rush and see what others miss', Manifestor: 'your kind of weather: act on the urge, and inform first', Reflector: 'a lot to take in, and you would want space there today' },
+}
+const SKY_WORD = { clear: ['Bright and open', 'Clear and still'], cloud: ['Soft and grey', 'Soft and dark'], fog: ['Quiet and veiled', 'Quiet and veiled'], rain: ['Rainy and inward', 'Rainy and inward'], snow: ['Hushed and white', 'Hushed and white'], storm: ['Charged and stormy', 'Charged and stormy'] }
+
+export function placeEnergy(weather, where, type) {
+  if (!type || !MOOD.open[type]) return null
+  const mood = weather.kind === 'storm' ? 'charged' : weather.kind === 'clear' && weather.isDay ? 'open' : 'inward'
+  const sky = (SKY_WORD[weather.kind] ?? SKY_WORD.cloud)[weather.isDay ? 0 : 1]
+  return `${sky} in ${where} right now. For a ${type}: ${MOOD[mood][type]}.`
+}
+
 const partnerOf = (gate, owned) => CHANNELS.filter(([a, b]) => (a === gate && owned.has(b)) || (b === gate && owned.has(a)))
 
 function describe(act) {
@@ -114,7 +130,7 @@ export function buildInsight(s, chart, profile, date) {
 
   const completes = owned.size && !owned.has(sun.gate) ? partnerOf(sun.gate, owned)[0] : null
   // One line for the top of the page: how today's theme meets this person's chart.
-  let hook = 'Add your birth details to see how today meets your chart.'
+  let hook = 'The whole world shares this theme for the next few days.'
   if (owned.has(sun.gate)) hook = `This one is already yours. Gate ${sun.gate} lives in your chart.`
   else if (completes) hook = `A rare alignment: today completes your Channel of ${completes[4]}.`
   else if (definedCenters.length) hook = definedCenters.includes(sun.center) ? `It lands on home ground. Your ${sun.center} center is defined.` : `You will feel this one loudly. Your ${sun.center} center is open.`
@@ -133,7 +149,7 @@ export function buildInsight(s, chart, profile, date) {
         : `Your ${sun.center} center is open, meaning you take in other people's energy there. You may feel today's theme louder than usual, and not all of it is yours to act on.`
     )
   } else {
-    personal.push('Add your birth details in Settings and this section will speak to your own chart.')
+    personal.push('Everyone feels this theme, each through their own chart.')
   }
   if (type && TYPE_STRATEGY[type]) personal.push(`As a ${type} (${TYPE_PLAIN[type]}): ${TYPE_STRATEGY[type]}`)
 

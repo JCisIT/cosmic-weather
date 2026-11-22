@@ -99,7 +99,7 @@ export async function getProfile(user) {
   return check(await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle())
 }
 
-const DESIGN_FIELDS = ['name', 'email', 'hd_type', 'hd_profile', 'authority', 'defined_centers', 'birth_date', 'birth_time', 'birth_place', 'birth_tz', 'home_place', 'places']
+const DESIGN_FIELDS = ['name', 'email', 'hd_type', 'hd_profile', 'authority', 'defined_centers', 'birth_date', 'birth_time', 'birth_place', 'birth_tz', 'birth_lat', 'birth_lon', 'home_place', 'places']
 
 // Only the fields a person may set. Role and tier are never sent from the browser.
 function designRow(p) {

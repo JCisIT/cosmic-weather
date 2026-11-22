@@ -39,13 +39,26 @@ async function getJson(url, tries = 2) {
 }
 
 const REGION = ((navigator.language || '').split('-')[1] || '').toUpperCase()
+const STATES = { AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California', CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa', KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi', MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York', NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming', DC: 'District of Columbia' }
 
+// People type "Martinez, CA" or "Paris, France". The service only matches the town name, so search on the part
+// before the comma and use the rest to put the right one on top.
 export async function searchPlaces(query) {
-  const data = await getJson(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=10&language=en&format=json`)
+  const [town, ...rest] = query.split(',').map((s) => s.trim()).filter(Boolean)
+  if (!town) return []
+  const hintRaw = rest.join(' ').toLowerCase()
+  const hint = (STATES[hintRaw.toUpperCase()] ?? hintRaw).toLowerCase()
+  const data = await getJson(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(town)}&count=20&language=en&format=json`)
   const found = data.results ?? []
-  // Places in the person's own country come first; otherwise the service's order (roughly by size) is kept.
-  const ranked = [...found.filter((r) => r.country_code === REGION), ...found.filter((r) => r.country_code !== REGION)].slice(0, 6)
-  return ranked.map((r) => ({
+  const score = (r) => {
+    let n = 0
+    if (hint && [r.admin1, r.country, r.country_code].some((x) => x && (x.toLowerCase() === hint || x.toLowerCase().startsWith(hint)))) n += 4
+    if (r.country_code === REGION) n += 1
+    return n
+  }
+  // A stable sort keeps the service's own order (roughly by size) within each score.
+  const ranked = found.map((r, i) => ({ r, i, n: score(r) })).sort((x, y) => y.n - x.n || x.i - y.i).slice(0, 6)
+  return ranked.map(({ r }) => ({
     name: [r.name, r.admin1, r.country_code === 'US' ? null : r.country].filter(Boolean).join(', '),
     lat: r.latitude,
     lon: r.longitude,
@@ -85,6 +98,18 @@ export function distance(a, b) {
   return `${Math.round(n).toLocaleString()} ${US ? 'miles' : 'km'}`
 }
 
+const minutes = (iso) => (iso ? Number(iso.slice(11, 13)) * 60 + Number(iso.slice(14, 16)) : null)
+
+// Is the sun coming up or going down there right now (within 40 minutes)?
+function momentOf(w) {
+  const now = minutes(w.current.time)
+  const rise = minutes(w.daily.sunrise?.[0])
+  const set = minutes(w.daily.sunset?.[0])
+  if (rise != null && Math.abs(now - rise) <= 40) return 'sunrise'
+  if (set != null && Math.abs(now - set) <= 40) return 'sunset'
+  return null
+}
+
 function shape(w, air) {
   const [label, kind] = WMO[w.current.weather_code] ?? ['Unsettled', 'cloud']
   const aqi = air?.current?.us_aqi ?? null
@@ -100,6 +125,7 @@ function shape(w, air) {
     sunrise: clockTime(w.daily.sunrise?.[0]),
     sunset: clockTime(w.daily.sunset?.[0]),
     daylightMin: w.daily.daylight_duration?.[0] != null ? Math.round(w.daily.daylight_duration[0] / 60) : null,
+    moment: momentOf(w),
     aqi,
     aqiLabel: aqiLabel(aqi),
   }

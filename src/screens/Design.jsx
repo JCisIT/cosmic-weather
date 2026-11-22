@@ -58,6 +58,8 @@ export default function Design({ user, profile, onSaved, onSignOut, first }) {
     birth_time: profile?.birth_time?.slice(0, 5) ?? '',
     birth_place: profile?.birth_place ?? '',
     birth_tz: profile?.birth_tz ?? '',
+    birth_lat: profile?.birth_lat ?? null,
+    birth_lon: profile?.birth_lon ?? null,
     home_place: profile?.home_place ?? null,
     places: profile?.places ?? [],
     ...blankDesign(profile),
@@ -106,10 +108,10 @@ export default function Design({ user, profile, onSaved, onSignOut, first }) {
           id="birth_place"
           label="Birth place"
           value={birthPlace}
-          onPick={(p) => setForm({ ...form, birth_place: p.name, birth_tz: p.tz })}
-          onClear={() => setForm({ ...form, birth_place: '', birth_tz: '' })}
+          initialQuery={form.birth_tz ? '' : form.birth_place}
+          onPick={(p) => setForm({ ...form, birth_place: p.name, birth_tz: p.tz, birth_lat: p.lat, birth_lon: p.lon })}
+          onClear={() => setForm({ ...form, birth_place: '', birth_tz: '', birth_lat: null, birth_lon: null })}
         />
-        {form.birth_place && !form.birth_tz && <p className="muted">Search and pick your birth place so we know its time zone.</p>}
         {chart ? (
           <p className="chart-ready">Your chart: <b>{chart.type}</b>, {chart.profile} profile, {chart.authority} authority.</p>
         ) : (
@@ -127,10 +129,14 @@ export default function Design({ user, profile, onSaved, onSignOut, first }) {
 
       <div className="tile">
         <h2>Your places</h2>
-        <p className="muted">Home gets the full weather and tonight's sky. Add up to three more places you care about.</p>
+        <p className="muted">Home gets the full weather and tonight's sky. Add up to three more places you care about and give each your own name. Your birth place is added for you.</p>
         <PlacePicker id="home_place" label="Home" value={form.home_place} onPick={(p) => setForm({ ...form, home_place: p })} onClear={() => setForm({ ...form, home_place: null })} />
         {form.places.map((p, i) => (
-          <PlacePicker key={p.name + i} id={`place-${i}`} label={`Place ${i + 1}`} value={p} onClear={() => setForm({ ...form, places: form.places.filter((_, j) => j !== i) })} />
+          <div key={p.name + i} className="place-edit">
+            <PlacePicker id={`place-${i}`} label={`Place ${i + 1}`} value={p} onClear={() => setForm({ ...form, places: form.places.filter((_, j) => j !== i) })} />
+            <label htmlFor={`place-label-${i}`} className="sr">What you call place {i + 1}</label>
+            <input id={`place-label-${i}`} placeholder="What do you call it? Mom's house, the cabin (optional)" value={p.label ?? ''} onChange={(e) => setForm({ ...form, places: form.places.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)) })} />
+          </div>
         ))}
         {form.places.length < 3 && (
           <PlacePicker id="place-new" label="Add a place" value={null} onPick={(p) => setForm({ ...form, places: [...form.places, p] })} />

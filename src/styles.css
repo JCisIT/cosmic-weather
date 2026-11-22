@@ -271,3 +271,40 @@ html { scroll-behavior: smooth; }
 /* ---------- mantra with a video ---------- */
 .mantra { flex-wrap: wrap; }
 .mantra-video { flex-basis: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 16px; background: #000; }
+
+.place-card .energy { font-family: var(--display); font-style: italic; font-weight: 600; font-size: 19px; line-height: 1.25; color: var(--purple); margin: 2px 0; }
+.place-card .special { align-self: flex-start; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 10px; background: var(--gold); }
+.place-edit { display: flex; flex-direction: column; gap: 6px; }
+
+/* ---------- alternating boxes: every other one goes back to brand purple ---------- */
+.tile.dark { background: var(--purple); color: var(--lilac); }
+.tile.dark .eyebrow { color: var(--gold); }
+.tile.dark .muted, .tile.dark .j-text { color: var(--soft); }
+.tile.dark .lesson { background: var(--purple-2); }
+.tile.dark .j-row { border-color: var(--purple-2); }
+.tile.dark > .link { color: var(--gold); }
+.tile.dark b { color: var(--gold); }
+.tile.dark .j-feel { color: var(--purple); }
+.tile.dark.chart dl > div { border-color: var(--purple-2); }
+.tile.dark.chart dt, .tile.dark.chart dd { color: var(--soft); }
+.tile.dark.chart dd b { color: var(--gold); }
+.tile.dark .tags i { background: var(--purple-2); color: var(--lilac); }
+.tile.dark .prompt { color: var(--lilac); }
+.tile.invite { border: 1px solid var(--gold); align-items: flex-start; }
+.tile.invite h3 { font-weight: 600; font-size: 30px; line-height: 1.05; }
+.tile.setup { border: 1px solid var(--gold); align-items: flex-start; }
+
+/* ---------- hero: Human Design first, moon as a strip ---------- */
+.gate { color: var(--purple); }
+.opening .gates { margin: 4px 0; }
+.moon-strip { align-self: stretch; display: flex; align-items: center; gap: 14px; text-align: left; }
+.moon-strip .moon-hero { width: 150px; flex: none; margin: -6px 0 -6px -8px; }
+.moon-strip > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.moon-strip h2 { font-weight: 600; font-size: 30px; line-height: 1; margin: 2px 0 4px; }
+.star-line { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+
+/* ---------- mantra on a light box ---------- */
+.mantra.light { background: var(--white); color: var(--purple); }
+.mantra.light .eyebrow.gold { color: var(--gold-ink); }
+.mantra.light .soft, .mantra.light .mantra-time { color: var(--muted); }
+.opening .gate b { font-size: 26px; white-space: nowrap; }

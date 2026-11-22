@@ -3,7 +3,7 @@ import { sky, PHASES } from '../sky.js'
 import { BOOKING_URL, SAMPLE_MANTRA, promptFor } from '../content.js'
 import { dayKey, listEntries, saveEntry, listCheckins, saveCheckin, mantraUrl } from '../store.js'
 import { getWeatherAll, stargazing, localTime, distance, duration, UNITS } from '../weather.js'
-import { buildInsight, CENTER_PLAIN, TYPE_PLAIN, AUTHORITY_PLAIN, PROFILE_LINE } from '../insight.js'
+import { buildInsight, placeEnergy, CENTER_PLAIN, TYPE_PLAIN, AUTHORITY_PLAIN, PROFILE_LINE } from '../insight.js'
 import { useChart } from '../chart/useChart.js'
 import MoonHero from '../MoonHero.jsx'
 import StarField from '../StarField.jsx'
@@ -42,7 +42,14 @@ export default function Today({ user, profile, onGo }) {
   }, [profile.mantra_path])
 
   const homePlace = profile.home_place
-  const places = profile.places ?? []
+  // Their chosen places, plus their birth place when we know where it is and it is not already listed.
+  const places = useMemo(() => {
+    const chosen = profile.places ?? []
+    const born = profile.birth_lat != null && profile.birth_lon != null ? { name: profile.birth_place, lat: profile.birth_lat, lon: profile.birth_lon, tz: profile.birth_tz, label: 'Where you were born' } : null
+    const near = (a, b) => a && b && Math.abs(a.lat - b.lat) < 0.05 && Math.abs(a.lon - b.lon) < 0.05
+    return born && !near(born, profile.home_place) && !chosen.some((p) => near(born, p)) ? [...chosen, born] : chosen
+  }, [profile])
+  const type = chart?.type ?? profile.hd_type
 
   useEffect(() => {
     if (!homePlace) return
@@ -95,9 +102,11 @@ export default function Today({ user, profile, onGo }) {
   // Past days for the journal preview: newest first, today excluded.
   const pastDays = [...new Set([...entries.map((e) => e.entry_date), ...checkins.map((c) => c.entry_date)])].filter((d) => d !== today).sort().reverse().slice(0, 3)
 
+  const missing = [!chart && !profile.hd_type ? 'your birth details' : null, !homePlace ? 'your home town' : null].filter(Boolean)
+
   return (
     <>
-      {/* 1. Greeting and tonight's sky */}
+      {/* 1. Greeting and today's Human Design, with the moon */}
       <section className="sky-panel">
         <StarField />
         <div className="sky-top">
@@ -105,45 +114,44 @@ export default function Today({ user, profile, onGo }) {
           <h1>{greeting(now.getHours())}, {profile.name}.</h1>
         </div>
         <div className="opening">
-          <span className="eyebrow gold">Today's energy · Sun in Gate {insight.sun.gate}.{insight.sun.line}</span>
+          <span className="eyebrow gold">Today's energy</span>
           <h2>{insight.theme}</h2>
+          <div className="gates">
+            <div className="gate gold"><span>Sun</span><b>Gate {insight.sun.gate}.{insight.sun.line}</b><span>{insight.sun.name}</span></div>
+            <div className="gate lilac"><span>Earth</span><b>Gate {insight.earth.gate}.{insight.earth.line}</b><span>{insight.earth.name}</span></div>
+          </div>
           <p className="hook">{insight.hook}</p>
           {insight.strategy && <p className="soft">For you, a {insight.type}: {insight.strategy}</p>}
-          <a className="link light" href="#insight">See what it means for you</a>
+          <a className="link light" href="#insight">Read today's brief</a>
         </div>
         <div className="arrive">
-          <span>{arrive ? 'You arrived at' : 'Before you read on, how are you arriving?'}</span>
+          <span>{arrive ? 'You arrived at' : 'How are you arriving today?'}</span>
           <div role="group" aria-label="How you are arriving, from 1 to 5">
             {[1, 2, 3, 4, 5].map((n) => (
               <button key={n} type="button" aria-pressed={arrive === n} aria-label={`${n} of 5, ${FEELS[n - 1]}`} onClick={() => pick('arrive', n)}>{n}</button>
             ))}
           </div>
         </div>
-        <MoonHero elong={s.elong} label={`${s.phase.name}, ${s.illum} percent lit`} />
-        <div className="sky-caption">
-          <span className="eyebrow gold">Tonight's sky</span>
-          <h2>{s.phase.name}</h2>
-          <div className="sky-facts">
-            <div><b>{s.illum}%</b><span>lit</span></div>
-            <div><b>{s.moonSign}</b><span>moon sign</span></div>
-            <div><b>{s.next.days === 0 ? 'Tonight' : s.next.label}</b><span>to {s.next.what.toLowerCase()}</span></div>
+        <div className="moon-strip">
+          <MoonHero elong={s.elong} label={`${s.phase.name}, ${s.illum} percent lit`} />
+          <div>
+            <span className="eyebrow gold">Tonight's moon</span>
+            <h2>{s.phase.name}</h2>
+            <span className="sky-fact">{s.illum}% lit, in {s.moonSign}</span>
+            <span className="sky-fact">{s.next.what} {s.next.days === 0 ? 'tonight' : `in ${s.next.label}`}</span>
           </div>
-        </div>
-        <div className="star-row">
-          {star ? (
-            <>
-              <span className={`rating r-${star.rating.toLowerCase()}`}>Stargazing: {star.rating}</span>
-              <span className="soft">{star.reason}</span>
-            </>
-          ) : homePlace ? (
-            <span className="soft">{weatherNote || 'Reading tonight\'s cloud cover.'}</span>
-          ) : (
-            <button type="button" className="link light" onClick={() => onGo('My Design')}>Add your home town to see tonight's stargazing</button>
-          )}
         </div>
       </section>
 
-<MantraPlayer
+      {missing.length > 0 && (
+        <section className="tile setup">
+          <span className="eyebrow">Make it yours</span>
+          <p>Add {missing.join(' and ')} and this page speaks to your own chart and sky.</p>
+          <button type="button" className="btn dark" onClick={() => onGo('My Design')}>Finish setting up</button>
+        </section>
+      )}
+
+      <MantraPlayer
         key={mantraSrc ?? 'sample'}
         title={mantraSrc ? profile.mantra_title || 'Your mantra' : SAMPLE_MANTRA.title}
         src={mantraSrc}
@@ -152,81 +160,10 @@ export default function Today({ user, profile, onGo }) {
 
       <InstallHint />
 
-      {/* 2. Weather */}
-      <section className="tile">
-        <span className="eyebrow">Weather</span>
-        {!homePlace && (
-          <>
-            <p>Add your home town and up to three other places to see live weather here.</p>
-            <button type="button" className="btn dark" onClick={() => onGo('My Design')}>Add my places</button>
-          </>
-        )}
-        {homePlace && !home && <p className="muted">{weatherNote || `Checking the weather in ${homePlace.name}.`}</p>}
-        {home && (
-          <>
-            <div className="wx-home">
-              <WeatherIcon kind={home.kind} night={!home.isDay} size={64} />
-              <div>
-                <b className="wx-temp">{home.temp}{UNITS.temp}</b>
-                <span className="wx-label">{home.label}</span>
-              </div>
-            </div>
-            <span className="muted">{homePlace.name}</span>
-            <div className="wx-facts">
-              <div><span>High / low</span><b>{home.high}° / {home.low}°</b></div>
-              <div><span>Wind</span><b>{home.wind} {UNITS.wind}</b></div>
-              <div><span>Air quality</span><b>{home.aqi ?? 'n/a'}</b><span>{home.aqiLabel}</span></div>
-            </div>
-          </>
-        )}
-        {home && (home.sunrise || home.sunset) && <span className="muted">Sunrise {home.sunrise} · Sunset {home.sunset}</span>}
-        {others.length > 0 && (
-          <div className="places">
-            <span className="eyebrow">Your other places</span>
-            {others.map((o) => {
-              if (o.failed) return <div key={o.name} className="place-card"><b>{o.name.split(',')[0]}</b><span className="muted">Not available right now</span></div>
-              const stars = stargazing(o.cloudTonight, s.illum)
-              const more = home?.daylightMin != null && o.daylightMin != null ? o.daylightMin - home.daylightMin : null
-              return (
-                <div key={o.name} className="place-card">
-                  <div className="place-top">
-                    <div>
-                      <b>{o.name.split(',')[0]}</b>
-                      <span className="muted">{localTime(o.place.tz)} there now · {distance(homePlace, o.place)} away</span>
-                    </div>
-                    <div className="place-wx">
-                      <WeatherIcon kind={o.kind} night={!o.isDay} size={34} />
-                      <b>{o.temp}{UNITS.temp}</b>
-                    </div>
-                  </div>
-                  <span>{o.label}, wind {o.wind} {UNITS.wind}, air quality {o.aqi ?? 'n/a'}{o.aqiLabel ? ` (${o.aqiLabel.toLowerCase()})` : ''}</span>
-                  <span className="muted">
-                    Sunrise {o.sunrise} · Sunset {o.sunset}
-                    {more != null && Math.abs(more) >= 5 ? ` · ${duration(Math.abs(more))} ${more > 0 ? 'more' : 'less'} daylight than home` : ''}
-                  </span>
-                  {stars && <span className="muted">Stargazing tonight: {stars.rating.toLowerCase()}. Same moon as yours.</span>}
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* 3. Human Design insight */}
-      <section className="tile insight" id="insight">
+      {/* 2. Human Design brief */}
+      <section className="tile dark insight" id="insight">
         <span className="eyebrow">Human Design today</span>
-        <div className="gates">
-          <div className="gate gold">
-            <span>Sun</span>
-            <b>Gate {insight.sun.gate}.{insight.sun.line}</b>
-            <span>{insight.sun.name}</span>
-          </div>
-          <div className="gate lilac">
-            <span>Earth</span>
-            <b>Gate {insight.earth.gate}.{insight.earth.line}</b>
-            <span>{insight.earth.name}</span>
-          </div>
-        </div>
+        <h3 className="prompt">{insight.sun.name}</h3>
         <p>
           The Sun is passing through <b>Gate {insight.sun.gate}</b> (a gate is one of 64 themes on the Human Design wheel): {insight.sun.plain}. It is in <b>line {insight.sun.line}</b> (each gate has six lines, which flavor it): {insight.sun.lineTheme}.
         </p>
@@ -240,7 +177,7 @@ export default function Today({ user, profile, onGo }) {
         </div>
       </section>
 
-      {/* 4. Daily check-in */}
+      {/* 3. Daily check-in */}
       <section className="tile">
         <span className="eyebrow">Daily check-in</span>
         <h3 className="prompt">{arrive ? 'Now that you have read today, how do you feel?' : 'How are you feeling today?'}</h3>
@@ -263,8 +200,8 @@ export default function Today({ user, profile, onGo }) {
         </div>
       </section>
 
-      {/* 5. Living journal */}
-      <section className="tile">
+      {/* 4. Living journal */}
+      <section className="tile dark">
         <span className="eyebrow">Living journal</span>
         {pastDays.length === 0 && <p className="muted">Each day you check in is kept here under its date. Nothing is ever deleted.</p>}
         {pastDays.map((d) => {
@@ -282,42 +219,104 @@ export default function Today({ user, profile, onGo }) {
         <button type="button" className="link" onClick={() => onGo('Journal')}>Open the full journal</button>
       </section>
 
-      {/* 6. Their chart, as a compact reference */}
-      <section className="tile chart">
-        <span className="eyebrow">Your chart</span>
-        {chart ? (
-          <>
-            <dl>
-              <div><dt>Type</dt><dd><b>{chart.type}</b><span>{TYPE_PLAIN[chart.type]}</span></dd></div>
-              <div><dt>Authority</dt><dd><b>{chart.authority}</b><span>{AUTHORITY_PLAIN[chart.authority]}</span></dd></div>
-              <div><dt>Profile</dt><dd><b>{chart.profile}</b><span>{chart.profile.split('/').map((l) => PROFILE_LINE[l]).join(' / ')}</span></dd></div>
-              <div><dt>Defined centers</dt><dd>{chart.definedCenters.length ? <span className="tags">{chart.definedCenters.map((c) => <i key={c} title={CENTER_PLAIN[c]}>{c}</i>)}</span> : <span>None. Every center is open.</span>}</dd></div>
-              <div><dt>Channels</dt><dd>{chart.channels.length ? chart.channels.map((c) => <span key={c.name}>{c.gates.join('-')} {c.name} ({c.centers.join(' to ')})</span>) : <span>None complete.</span>}</dd></div>
-              <div><dt>Incarnation cross</dt><dd><b>{chart.cross.angle}</b><span>Gates {chart.cross.gates[0]}/{chart.cross.gates[1]} and {chart.cross.gates[2]}/{chart.cross.gates[3]}</span></dd></div>
-              <div><dt>Hanging gates</dt><dd><span>{chart.hangingGates.join(', ') || 'None'}</span></dd></div>
-            </dl>
-            <p className="muted">Calculated from your birth details. Hanging gates are ones you have without their partner gate.</p>
-          </>
-        ) : profile.hd_type ? (
-          <dl>
-            <div><dt>Type</dt><dd><b>{profile.hd_type}</b><span>{TYPE_PLAIN[profile.hd_type]}</span></dd></div>
-            {profile.authority && <div><dt>Authority</dt><dd><b>{profile.authority}</b><span>{AUTHORITY_PLAIN[profile.authority]}</span></dd></div>}
-            {profile.hd_profile && <div><dt>Profile</dt><dd><b>{profile.hd_profile}</b></dd></div>}
-            {profile.defined_centers?.length > 0 && <div><dt>Defined centers</dt><dd><span className="tags">{profile.defined_centers.map((c) => <i key={c}>{c}</i>)}</span></dd></div>}
-          </dl>
-        ) : (
-          <>
-            <p>Add your birth date, time and place and your full chart appears here.</p>
-            <button type="button" className="btn dark" onClick={() => onGo('My Design')}>Add my birth details</button>
-          </>
-        )}
-      </section>
+      {/* 5. Weather, tonight's sky and their places */}
+      {homePlace && (
+        <section className="tile">
+          <span className="eyebrow">Weather and tonight's sky</span>
+          {!home && <p className="muted">{weatherNote || `Checking the weather in ${homePlace.name}.`}</p>}
+          {home && (
+            <>
+              <div className="wx-home">
+                <WeatherIcon kind={home.kind} night={!home.isDay} size={64} />
+                <div>
+                  <b className="wx-temp">{home.temp}{UNITS.temp}</b>
+                  <span className="wx-label">{home.label}</span>
+                </div>
+              </div>
+              <span className="muted">{homePlace.name} · Sunrise {home.sunrise} · Sunset {home.sunset}</span>
+              <div className="wx-facts">
+                <div><span>High / low</span><b>{home.high}° / {home.low}°</b></div>
+                <div><span>Wind</span><b>{home.wind} {UNITS.wind}</b></div>
+                <div><span>Air quality</span><b>{home.aqi ?? 'n/a'}</b><span>{home.aqiLabel}</span></div>
+              </div>
+              {star && (
+                <div className="star-line">
+                  <span className={`rating r-${star.rating.toLowerCase()}`}>Stargazing: {star.rating}</span>
+                  <span className="muted">{star.reason}</span>
+                </div>
+              )}
+            </>
+          )}
+          {others.length > 0 && (
+            <div className="places">
+              <span className="eyebrow">Your other places</span>
+              {others.map((o) => {
+                const town = o.name.split(',')[0]
+                const stars = stargazing(o.cloudTonight, s.illum)
+                const energy = placeEnergy(o, town, type)
+                const special = o.moment === 'sunrise' ? 'The sun is rising there right now.' : o.moment === 'sunset' ? 'The sun is setting there right now.' : !o.isDay && s.illum >= 97 ? 'The full moon is over it tonight.' : null
+                const more = home?.daylightMin != null && o.daylightMin != null ? o.daylightMin - home.daylightMin : null
+                return (
+                  <div key={o.name} className="place-card">
+                    <div className="place-top">
+                      <div>
+                        <b>{o.place.label || town}</b>
+                        <span className="muted">{o.place.label ? `${town} · ` : ''}{localTime(o.place.tz)} there now · {distance(homePlace, o.place)} away</span>
+                      </div>
+                      <div className="place-wx">
+                        <WeatherIcon kind={o.kind} night={!o.isDay} size={34} />
+                        <b>{o.temp}{UNITS.temp}</b>
+                      </div>
+                    </div>
+                    {special && <span className="special">{special}</span>}
+                    {energy && <span className="energy">{energy}</span>}
+                    <span>{o.label}, wind {o.wind} {UNITS.wind}, air quality {o.aqi ?? 'n/a'}{o.aqiLabel ? ` (${o.aqiLabel.toLowerCase()})` : ''}</span>
+                    <span className="muted">
+                      Sunrise {o.sunrise} · Sunset {o.sunset}
+                      {more != null && Math.abs(more) >= 5 ? ` · ${duration(Math.abs(more))} ${more > 0 ? 'more' : 'less'} daylight than home` : ''}
+                    </span>
+                    {stars && <span className="muted">Stargazing tonight: {stars.rating.toLowerCase()}. Same moon as yours.</span>}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </section>
+      )}
 
-      <section className="tile astra">
-        <span className="eyebrow gold">From Astra</span>
+      {/* 6. Their chart, as a compact reference */}
+      {(chart || profile.hd_type) && (
+        <section className="tile dark chart">
+          <span className="eyebrow">Your chart</span>
+          {chart ? (
+            <>
+              <dl>
+                <div><dt>Type</dt><dd><b>{chart.type}</b><span>{TYPE_PLAIN[chart.type]}</span></dd></div>
+                <div><dt>Authority</dt><dd><b>{chart.authority}</b><span>{AUTHORITY_PLAIN[chart.authority]}</span></dd></div>
+                <div><dt>Profile</dt><dd><b>{chart.profile}</b><span>{chart.profile.split('/').map((l) => PROFILE_LINE[l]).join(' / ')}</span></dd></div>
+                <div><dt>Defined centers</dt><dd>{chart.definedCenters.length ? <span className="tags">{chart.definedCenters.map((c) => <i key={c} title={CENTER_PLAIN[c]}>{c}</i>)}</span> : <span>None. Every center is open.</span>}</dd></div>
+                <div><dt>Channels</dt><dd>{chart.channels.length ? chart.channels.map((c) => <span key={c.name}>{c.gates.join('-')} {c.name} ({c.centers.join(' to ')})</span>) : <span>None complete.</span>}</dd></div>
+                <div><dt>Incarnation cross</dt><dd><b>{chart.cross.angle}</b><span>Gates {chart.cross.gates[0]}/{chart.cross.gates[1]} and {chart.cross.gates[2]}/{chart.cross.gates[3]}</span></dd></div>
+                <div><dt>Hanging gates</dt><dd><span>{chart.hangingGates.join(', ') || 'None'}</span></dd></div>
+              </dl>
+              <p className="muted">Calculated from your birth details. Hanging gates are ones you have without their partner gate.</p>
+            </>
+          ) : (
+            <dl>
+              <div><dt>Type</dt><dd><b>{profile.hd_type}</b><span>{TYPE_PLAIN[profile.hd_type]}</span></dd></div>
+              {profile.authority && <div><dt>Authority</dt><dd><b>{profile.authority}</b><span>{AUTHORITY_PLAIN[profile.authority]}</span></dd></div>}
+              {profile.hd_profile && <div><dt>Profile</dt><dd><b>{profile.hd_profile}</b></dd></div>}
+              {profile.defined_centers?.length > 0 && <div><dt>Defined centers</dt><dd><span className="tags">{profile.defined_centers.map((c) => <i key={c}>{c}</i>)}</span></dd></div>}
+            </dl>
+          )}
+        </section>
+      )}
+
+      <section className="tile invite">
+        <span className="eyebrow">From Astra</span>
         <h3>Go deeper with your design</h3>
-        <span className="soft">A reading or 1:1 coaching turns the daily weather into a path that is yours.</span>
-        <a className="btn gold" href={BOOKING_URL} target="_blank" rel="noreferrer">Book your discovery call</a>
+        <span className="muted">A reading or 1:1 coaching turns the daily weather into a path that is yours.</span>
+        <a className="btn dark" href={BOOKING_URL} target="_blank" rel="noreferrer">Book your discovery call</a>
       </section>
     </>
   )

@@ -133,3 +133,9 @@ create trigger guard_mantra before update on profiles for each row execute funct
 -- Two check-in readings per day (fifth migration): "arrive" before reading, "feel" after.
 alter table checkins alter column feel drop not null;
 alter table checkins add column if not exists arrive text;
+
+-- Where the birth place is, so it can show as one of their places (sixth migration).
+alter table profiles add column if not exists birth_lat double precision;
+alter table profiles add column if not exists birth_lon double precision;
+grant insert (birth_lat, birth_lon) on profiles to authenticated;
+grant update (birth_lat, birth_lon) on profiles to authenticated;

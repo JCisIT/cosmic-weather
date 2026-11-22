@@ -19,7 +19,7 @@ export default function MantraPlayer({ title, src, video }) {
   const bars = Array.from({ length: 28 }, (_, i) => 22 + Math.round(60 * Math.abs(Math.sin(i * 1.7) * Math.cos(i * 0.6))))
 
   return (
-    <section className={playing ? 'mantra playing' : 'mantra'}>
+    <section className={playing ? 'mantra light playing' : 'mantra light'}>
       <button type="button" className="mantra-play" aria-label={playing ? 'Stop' : `Play ${title}`} onClick={toggle}>
         <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
           {playing ? <path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor" /> : <path d="M8 5l11 7-11 7z" fill="currentColor" />}

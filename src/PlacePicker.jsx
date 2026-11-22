@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { searchPlaces } from './weather.js'
 
 // Type a town and matches appear underneath as you go. Picking one gives back { name, lat, lon, tz }.
-export default function PlacePicker({ id, label, value, onPick, onClear, placeholder = 'Start typing a town or city' }) {
-  const [q, setQ] = useState('')
+export default function PlacePicker({ id, label, value, onPick, onClear, initialQuery = '', placeholder = 'Start typing a town or city' }) {
+  const [q, setQ] = useState(initialQuery)
   const [results, setResults] = useState(null)
   const [note, setNote] = useState('')
   const latest = useRef(0)
@@ -22,7 +22,7 @@ export default function PlacePicker({ id, label, value, onPick, onClear, placeho
         const found = await searchPlaces(term)
         if (mine !== latest.current) return
         setResults(found)
-        setNote(found.length ? '' : 'No match yet. Keep typing, or try the nearest larger town.')
+        setNote(found.length ? 'Tap your town below to choose it.' : 'No match yet. Keep typing, or try the nearest larger town.')
       } catch {
         if (mine === latest.current) setNote('Could not search right now. Try again.')
       }
@@ -43,6 +43,8 @@ export default function PlacePicker({ id, label, value, onPick, onClear, placeho
   }
 
   const pick = (r) => {
+    if (!latest.current) return // already picked
+    latest.current = 0
     onPick(r)
     setResults(null)
     setQ('')
@@ -57,6 +59,10 @@ export default function PlacePicker({ id, label, value, onPick, onClear, placeho
         autoComplete="off"
         value={q}
         onChange={(e) => setQ(e.target.value)}
+        onBlur={() => {
+          // Left the box without tapping a suggestion: take the top match, after giving a tap time to land.
+          setTimeout(() => { if (results?.length && latest.current) pick(results[0]) }, 250)
+        }}
         onKeyDown={(e) => {
           if (e.key !== 'Enter') return
           e.preventDefault() // never submit the whole form from here
