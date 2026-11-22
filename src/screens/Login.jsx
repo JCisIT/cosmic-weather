@@ -44,7 +44,7 @@ export default function Login({ onSignedIn }) {
 
   return (
     <div className="login">
-      <img className="brand-mark" src="./icon.svg" alt="" width={showForm ? 112 : 72} height={showForm ? 112 : 72} />
+      <img className="brand-mark" src="./icon-512.png" alt="" width={showForm ? 112 : 72} height={showForm ? 112 : 72} />
       <span className="eyebrow gold">Joyful Purpose Coaching</span>
       <h1>Cosmic Weather</h1>
       <span className="by">by Astra Fox</span>

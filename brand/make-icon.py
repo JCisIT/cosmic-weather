@@ -1,3 +1,5 @@
+# NOT IN USE: the live icon is brand/cosmos-icon.png (Astra's chosen artwork). This script draws an
+# earlier vector version of the Cosmos galaxy, kept in case a vector is ever needed.
 # Draws the Cosmos app icon: a spiral galaxy in the Cosmic Weather palette.
 # Run: python3 brand/make-icon.py   (writes brand/cosmos-icon.svg and brand/cosmos-icon-square.svg)
 # The square version is for phones, which round the corners themselves.
