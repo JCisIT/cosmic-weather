@@ -2,7 +2,7 @@
 
 ## What it is
 
-A daily page for your clients and community. Each morning, top to bottom: a greeting and tonight's sky (moon phase and a stargazing rating), live weather for home and up to three other places, a 1 to 5 check-in with a journal prompt, their living journal, a short Human Design brief for the day explained in plain words, and their own chart. Every screen points back to you.
+A daily page for your clients and community. Each morning, top to bottom: a greeting with the day's Human Design theme and how it meets their chart, tonight's sky (moon phase and a stargazing rating), their musical mantra, live weather for home and up to three other places, a 1 to 5 check-in with a journal prompt, their living journal, a short Human Design brief for the day explained in plain words, and their own chart. Every screen points back to you.
 
 ## How people get in
 
@@ -17,7 +17,7 @@ You see one extra tab that clients do not: **Studio**.
 
 - **Your people**: everyone who has signed in, with their birth details.
 - **Their design**: set or correct a person's type, profile, authority and defined centers. Their daily page updates right away.
-- **Add a session recap**: date, title, what you covered, and action steps (one per line). The recap shows on their Sessions tab and each action step lands in their to-do list marked "1:1".
+- **Add a session recap**: date, title, what you covered, and action steps (one per line). The recap and the action steps show on their Sessions tab, where they can tick each step off.
 
 ## What you can shape
 

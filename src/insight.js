@@ -113,6 +113,13 @@ export function buildInsight(s, chart, profile, date) {
   const personal = []
 
   const completes = owned.size && !owned.has(sun.gate) ? partnerOf(sun.gate, owned)[0] : null
+  // One line for the top of the page: how today's theme meets this person's chart.
+  let hook = 'Add your birth details to see how today meets your chart.'
+  if (owned.has(sun.gate)) hook = `This one is already yours. Gate ${sun.gate} lives in your chart.`
+  else if (completes) hook = `A rare alignment: today completes your Channel of ${completes[4]}.`
+  else if (definedCenters.length) hook = definedCenters.includes(sun.center) ? `It lands on home ground. Your ${sun.center} center is defined.` : `You will feel this one loudly. Your ${sun.center} center is open.`
+  const theme = sun.plain.charAt(0).toUpperCase() + sun.plain.slice(1) + '.'
+
   if (owned.has(sun.gate)) {
     personal.push(`You have Gate ${sun.gate} in your own chart, so today's light falls on something that is already yours. It may feel familiar and stronger than usual.`)
   } else if (completes) {
@@ -132,5 +139,5 @@ export function buildInsight(s, chart, profile, date) {
 
   const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000)
   const [title, body] = LESSONS[dayOfYear % LESSONS.length]
-  return { sun, earth, personal, lesson: { title, body } }
+  return { sun, earth, personal, hook, theme, type, strategy: TYPE_STRATEGY[type] ?? null, lesson: { title, body } }
 }

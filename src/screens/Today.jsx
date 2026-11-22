@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { sky, PHASES } from '../sky.js'
 import { BOOKING_URL, SAMPLE_MANTRA_TITLE, promptFor } from '../content.js'
-import { dayKey, listEntries, saveEntry, listTodos, addTodo, toggleTodo, listCheckins, saveCheckin, mantraUrl } from '../store.js'
+import { dayKey, listEntries, saveEntry, listCheckins, saveCheckin, mantraUrl } from '../store.js'
 import { getWeather, stargazing, UNITS } from '../weather.js'
 import { buildInsight, CENTER_PLAIN, TYPE_PLAIN, AUTHORITY_PLAIN, PROFILE_LINE } from '../insight.js'
 import { useChart } from '../chart/useChart.js'
@@ -35,8 +35,6 @@ export default function Today({ user, profile, onGo }) {
   const [answer, setAnswer] = useState('')
   const [noteText, setNoteText] = useState('')
   const [saved, setSaved] = useState('')
-  const [todos, setTodos] = useState([])
-  const [newTodo, setNewTodo] = useState('')
   const [mantraSrc, setMantraSrc] = useState(null)
 
   useEffect(() => {
@@ -60,7 +58,6 @@ export default function Today({ user, profile, onGo }) {
       setNoteText(all.find((e) => e.entry_date === today && e.slot === 'note')?.body ?? '')
     }).catch(() => {})
     listCheckins(user).then(setCheckins).catch(() => {})
-    listTodos(user).then(setTodos).catch(() => {})
   }, [user, today])
 
   const feel = Number(checkins.find((c) => c.entry_date === today)?.feel) || null
@@ -86,19 +83,6 @@ export default function Today({ user, profile, onGo }) {
     }
   }
 
-  const add = async (e) => {
-    e.preventDefault()
-    if (!newTodo.trim()) return
-    const todo = await addTodo(user, newTodo.trim())
-    setTodos([...todos, todo])
-    setNewTodo('')
-  }
-
-  const flip = async (todo) => {
-    setTodos(todos.map((t) => (t.id === todo.id ? { ...t, done: !t.done } : t)))
-    await toggleTodo(user, todo)
-  }
-
   // Past days for the journal preview: newest first, today excluded.
   const pastDays = [...new Set([...entries.map((e) => e.entry_date), ...checkins.map((c) => c.entry_date)])].filter((d) => d !== today).sort().reverse().slice(0, 3)
 
@@ -110,6 +94,13 @@ export default function Today({ user, profile, onGo }) {
         <div className="sky-top">
           <span className="eyebrow gold">{now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</span>
           <h1>{greeting(now.getHours())}, {profile.name}.</h1>
+        </div>
+        <div className="opening">
+          <span className="eyebrow gold">Today's energy · Sun in Gate {insight.sun.gate}.{insight.sun.line}</span>
+          <h2>{insight.theme}</h2>
+          <p className="hook">{insight.hook}</p>
+          {insight.strategy && <p className="soft">For you, a {insight.type}: {insight.strategy}</p>}
+          <a className="link light" href="#insight">See what it means for you</a>
         </div>
         <MoonHero elong={s.elong} label={`${s.phase.name}, ${s.illum} percent lit`} />
         <div className="sky-caption">
@@ -212,24 +203,6 @@ export default function Today({ user, profile, onGo }) {
         </div>
       </section>
 
-      {todos.length > 0 && (
-        <section className="tile">
-          <h3>To do</h3>
-          {todos.map((t) => (
-            <label key={t.id} className={t.done ? 'todo done' : 'todo'}>
-              <input type="checkbox" checked={t.done} onChange={() => flip(t)} />
-              <span>{t.title}</span>
-              {t.source === 'session' && <em>1:1</em>}
-            </label>
-          ))}
-          <form className="add" onSubmit={add}>
-            <label className="sr" htmlFor="new-todo">New to-do</label>
-            <input id="new-todo" placeholder="Add a to-do" value={newTodo} onChange={(e) => setNewTodo(e.target.value)} />
-            <button type="submit" className="btn dark small">Add</button>
-          </form>
-        </section>
-      )}
-
       {/* 4. Living journal */}
       <section className="tile">
         <span className="eyebrow">Living journal</span>
@@ -249,7 +222,7 @@ export default function Today({ user, profile, onGo }) {
       </section>
 
       {/* 5. Human Design insight */}
-      <section className="tile insight">
+      <section className="tile insight" id="insight">
         <span className="eyebrow">Human Design today</span>
         <div className="gates">
           <div className="gate gold">

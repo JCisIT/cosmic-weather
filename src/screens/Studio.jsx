@@ -109,7 +109,7 @@ function Client({ admin, client, onBack }) {
         <label htmlFor="s-steps">Action steps, one per line</label>
         <textarea id="s-steps" rows="3" placeholder={'Block two unscheduled mornings\nVoice-note me after the full moon'} value={form.steps} onChange={set('steps')} />
         <div className="row">
-          <button type="submit" className="btn dark">Send to their app</button>
+          <button type="submit" className="btn dark">Send to their Sessions tab</button>
           <span className="muted" role="status">{note}</span>
         </div>
       </form>
