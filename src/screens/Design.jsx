@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { saveProfile, setPassword } from '../store.js'
 import { TYPES, PROFILES, AUTHORITIES, CENTERS } from '../content.js'
+import { chartFor } from '../chart/useChart.js'
+import PlacePicker from '../PlacePicker.jsx'
 
 export const blankDesign = (p) => ({
   hd_type: p?.hd_type ?? '',
@@ -9,7 +11,7 @@ export const blankDesign = (p) => ({
   defined_centers: p?.defined_centers ?? [],
 })
 
-// Type, profile, authority and defined centers. Shared by the client's own page and Astra's studio.
+// Type, profile, authority and defined centers, entered by hand. Used when there is no birth time, and in Astra's studio.
 export function DesignFields({ form, setForm, idPrefix = '' }) {
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
   const toggle = (c) =>
@@ -55,33 +57,41 @@ export default function Design({ user, profile, onSaved, onSignOut, first }) {
     birth_date: profile?.birth_date ?? '',
     birth_time: profile?.birth_time?.slice(0, 5) ?? '',
     birth_place: profile?.birth_place ?? '',
+    birth_tz: profile?.birth_tz ?? '',
+    home_place: profile?.home_place ?? null,
+    places: profile?.places ?? [],
     ...blankDesign(profile),
   })
   const [note, setNote] = useState('')
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
+  const chart = chartFor(form)
 
   const submit = async (e) => {
     e.preventDefault()
+    // When the chart can be calculated, it is the source of truth for the design fields.
+    const design = chart ? { hd_type: chart.type, hd_profile: chart.profile, authority: chart.authority, defined_centers: chart.definedCenters } : {}
     try {
-      onSaved(await saveProfile(user, { ...form, email: user.email }))
+      onSaved(await saveProfile(user, { ...form, ...design, email: user.email }))
       setNote('Saved')
     } catch (err) {
       setNote(err.message || 'Could not save. Try again.')
     }
   }
 
+  const birthPlace = form.birth_place && form.birth_tz ? { name: form.birth_place } : null
+
   return (
     <form className={first ? 'design first' : 'design'} onSubmit={submit}>
       <header className="page-head">
         <span className="eyebrow">{first ? 'Welcome' : 'My Design'}</span>
-        <h1>{first ? 'Tell us about you' : 'Your Human Design'}</h1>
+        <h1>{first ? 'Tell us about you' : 'Your details'}</h1>
       </header>
 
       <div className="tile">
         <label htmlFor="name">First name</label>
         <input id="name" required value={form.name} onChange={set('name')} autoComplete="given-name" />
         <h2>Birth details</h2>
-        <p className="muted">Your chart is drawn from these. The time matters, so check a birth certificate if you can.</p>
+        <p className="muted">Your chart is calculated from these. The time matters, so check a birth certificate if you can.</p>
         <div className="pair">
           <div>
             <label htmlFor="birth_date">Birth date</label>
@@ -92,14 +102,39 @@ export default function Design({ user, profile, onSaved, onSignOut, first }) {
             <input id="birth_time" type="time" value={form.birth_time} onChange={set('birth_time')} />
           </div>
         </div>
-        <label htmlFor="birth_place">Birth city</label>
-        <input id="birth_place" placeholder="City, state or country" value={form.birth_place} onChange={set('birth_place')} />
+        <PlacePicker
+          id="birth_place"
+          label="Birth place"
+          value={birthPlace}
+          onPick={(p) => setForm({ ...form, birth_place: p.name, birth_tz: p.tz })}
+          onClear={() => setForm({ ...form, birth_place: '', birth_tz: '' })}
+        />
+        {form.birth_place && !form.birth_tz && <p className="muted">Search and pick your birth place so we know its time zone.</p>}
+        {chart ? (
+          <p className="chart-ready">Your chart: <b>{chart.type}</b>, {chart.profile} profile, {chart.authority} authority.</p>
+        ) : (
+          <p className="muted">Add the date, time and place and your chart appears here.</p>
+        )}
       </div>
 
+      {!chart && (
+        <div className="tile">
+          <h2>No birth time?</h2>
+          <p className="muted">If you already know your design, fill it in by hand. Otherwise leave this and Astra can add it for you.</p>
+          <DesignFields form={form} setForm={setForm} />
+        </div>
+      )}
+
       <div className="tile">
-        <h2>Your design</h2>
-        <p className="muted">If you already know your chart, fill this in. If not, leave it and Astra can add it for you.</p>
-        <DesignFields form={form} setForm={setForm} />
+        <h2>Your places</h2>
+        <p className="muted">Home gets the full weather and tonight's sky. Add up to three more places you care about.</p>
+        <PlacePicker id="home_place" label="Home" value={form.home_place} onPick={(p) => setForm({ ...form, home_place: p })} onClear={() => setForm({ ...form, home_place: null })} />
+        {form.places.map((p, i) => (
+          <PlacePicker key={p.name + i} id={`place-${i}`} label={`Place ${i + 1}`} value={p} onClear={() => setForm({ ...form, places: form.places.filter((_, j) => j !== i) })} />
+        ))}
+        {form.places.length < 3 && (
+          <PlacePicker id="place-new" label="Add a place" value={null} onPick={(p) => setForm({ ...form, places: [...form.places, p] })} />
+        )}
       </div>
 
       <div className="row">

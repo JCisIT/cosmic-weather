@@ -2,13 +2,13 @@
 
 ## What it is
 
-A daily page for your clients and community. Each morning it shows the moon, the Sun and Earth gates, how that meets their own design, one journal prompt, their to-dos and an evening check-in. Every screen points back to you.
+A daily page for your clients and community. Each morning, top to bottom: a greeting and tonight's sky (moon phase and a stargazing rating), live weather for home and up to three other places, a 1 to 5 check-in with a journal prompt, their living journal, a short Human Design brief for the day explained in plain words, and their own chart. Every screen points back to you.
 
 ## How people get in
 
 - They open the link on their phone or computer.
 - They sign in with **their Google account** or **their email** (we send a sign-in link, so there is no password to remember).
-- The first time, they enter their first name and birth date, time and city. If they already know their type, profile, authority and defined centers they can add those too; if not, you add them from the Studio.
+- The first time, they enter their first name, birth date, time and place, and their home town. The app calculates their chart from that. If they have no birth time, they or you can fill in the design by hand.
 - On a phone they can add it to their home screen so it opens like an app.
 
 ## Your Studio
@@ -41,6 +41,5 @@ Write as many prompts per phase as you like. More prompts means less repeating.
 
 ## What is coming later
 
-- Charts calculated from birth details, so clients do not type their design in.
 - Your weekly voice note inside the app.
 - Paid membership, then the App Store.

@@ -46,7 +46,7 @@ export default function App() {
   return (
     <div className="app">
       <main className="screen">
-        {tab === 'Today' && <Today user={user} profile={profile} />}
+        {tab === 'Today' && <Today user={user} profile={profile} onGo={(t) => { setTab(t); window.scrollTo(0, 0) }} />}
         {tab === 'My Design' && <Design user={user} profile={profile} onSaved={setProfile} onSignOut={leave} />}
         {tab === 'Sessions' && <Sessions user={user} />}
         {tab === 'Studio' && <Studio user={user} />}

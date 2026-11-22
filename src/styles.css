@@ -133,3 +133,81 @@ textarea { resize: vertical; line-height: 1.6; }
 .login:has(.install) { justify-content: flex-start; padding-top: calc(28px + env(safe-area-inset-top, 0px)); }
 .login:has(.install) h1 { font-size: 44px; }
 .login:has(.install) .by { margin-bottom: 10px; }
+
+/* ---------- Today: sky panel ---------- */
+.sky-panel { position: relative; overflow: hidden; margin: calc(-24px - env(safe-area-inset-top, 0px)) -16px 0; padding: calc(34px + env(safe-area-inset-top, 0px)) 24px 26px; border-radius: 0 0 36px 36px; color: var(--lilac); display: flex; flex-direction: column; gap: 22px;
+  background: radial-gradient(120% 70% at 85% 0%, #4a2470 0%, rgba(74, 36, 112, 0) 60%), linear-gradient(180deg, #1c0a2e 0%, var(--purple) 55%, #3a1a59 100%); }
+.stars { position: absolute; inset: 0; opacity: 0.9; pointer-events: none;
+  background-image: radial-gradient(1.4px 1.4px at 12% 18%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 28% 62%, #fff 50%, transparent 51%), radial-gradient(1.6px 1.6px at 44% 12%, #f2ecff 50%, transparent 51%), radial-gradient(1px 1px at 58% 78%, #fff 50%, transparent 51%), radial-gradient(1.2px 1.2px at 71% 30%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 83% 58%, #f2ecff 50%, transparent 51%), radial-gradient(1.5px 1.5px at 92% 14%, #fff 50%, transparent 51%), radial-gradient(1px 1px at 6% 82%, #fff 50%, transparent 51%), radial-gradient(1.2px 1.2px at 36% 90%, #f2ecff 50%, transparent 51%), radial-gradient(1px 1px at 66% 52%, #fff 50%, transparent 51%);
+  animation: twinkle 6s ease-in-out infinite alternate; }
+@keyframes twinkle { from { opacity: 0.55; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .stars { animation: none; } }
+.sky-panel > * { position: relative; }
+.sky-panel h1 { font-weight: 600; font-size: 40px; line-height: 1.02; margin-top: 6px; }
+.sky-moon { display: flex; align-items: center; gap: 20px; }
+.sky-moon > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.sky-moon h2 { font-weight: 600; font-size: 32px; line-height: 1; margin: 2px 0 4px; }
+.sky-moon svg { filter: drop-shadow(0 0 22px rgba(211, 169, 85, 0.45)); }
+.sky-fact { font-size: 14px; color: var(--soft); }
+.star-row { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; font-size: 14px; }
+.rating { font-weight: 700; font-size: 14px; padding: 7px 14px; border-radius: 16px; background: var(--gold); color: var(--purple); }
+.rating.r-poor { background: var(--purple-2); color: var(--soft); border: 1px solid var(--soft); }
+.rating.r-fair { background: var(--lilac-2); }
+.link.light { color: var(--gold); padding: 0; }
+
+/* ---------- weather ---------- */
+.wx-home { display: flex; align-items: center; gap: 16px; color: var(--purple); }
+.wx-home > div { display: flex; flex-direction: column; }
+.wx-temp { font-family: var(--display); font-weight: 700; font-size: 58px; line-height: 0.9; }
+.wx-label { font-size: 16px; font-weight: 500; }
+.wx-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.wx-facts div { background: var(--lilac); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; min-width: 0; }
+.wx-facts span { font-size: 12px; color: var(--muted); }
+.wx-facts b { font-family: var(--display); font-weight: 700; font-size: 22px; line-height: 1.2; }
+.wx-rows { display: flex; flex-direction: column; border-top: 1px solid var(--lilac); }
+.wx-row { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.4fr) auto auto auto; gap: 10px; align-items: baseline; padding: 11px 0; border-bottom: 1px solid var(--lilac); font-size: 13px; color: var(--muted); }
+.wx-row:last-child { border-bottom: 0; padding-bottom: 0; }
+.wx-row b { font-size: 15px; color: var(--purple); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- check-in ---------- */
+.feels { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.feels button { min-height: 68px; border-radius: 18px; border: 1px solid var(--lilac-2); background: var(--lilac); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; }
+.feels b { font-family: var(--display); font-size: 26px; line-height: 1; }
+.feels span { font-size: 11px; color: var(--muted); }
+.feels button[aria-pressed='true'] { background: var(--purple); border-color: var(--purple); color: var(--gold); }
+.feels button[aria-pressed='true'] span { color: var(--lilac); }
+.prompt-q { font-family: var(--display); font-style: italic; font-weight: 600; font-size: 22px; line-height: 1.2; margin-top: 6px; }
+
+/* ---------- journal ---------- */
+.j-row { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: 10px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--lilac); font-size: 14px; }
+.j-row b { white-space: nowrap; }
+.j-text { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.j-feel { font-size: 12px; font-weight: 700; padding: 2px 9px; border-radius: 10px; background: var(--gold); white-space: nowrap; }
+.j-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.j-entry { display: flex; flex-direction: column; gap: 6px; }
+.j-entry .prompt { font-size: 21px; }
+.tile > .link { align-self: flex-start; padding: 4px 0 0; color: var(--purple); font-weight: 700; }
+
+/* ---------- insight and chart ---------- */
+.gates { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.gate { border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+.gate.gold { background: var(--gold); }
+.gate.lilac { background: var(--lilac-2); }
+.gate span:first-child { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+.gate b { font-family: var(--display); font-weight: 700; font-size: 32px; line-height: 1; }
+.lesson { background: var(--lilac); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+.chart dl { margin: 0; display: flex; flex-direction: column; }
+.chart dl > div { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--lilac); }
+.chart dt { font-size: 12px; font-weight: 700; color: var(--muted); padding-top: 3px; }
+.chart dd { margin: 0; display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--muted); }
+.chart dd b { font-family: var(--display); font-size: 21px; line-height: 1.15; color: var(--purple); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tags i { font-style: normal; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 10px; background: var(--lilac-2); color: var(--purple); }
+.chart-ready { background: var(--lilac); border-radius: 14px; padding: 12px 14px; }
+
+/* ---------- place picker ---------- */
+.place-picker { display: flex; flex-direction: column; gap: 6px; }
+.place-result { text-align: left; min-height: 44px; padding: 8px 14px; border-radius: 14px; border: 1px solid var(--lilac-2); background: var(--white); cursor: pointer; }
+.place-set { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 14px; background: var(--lilac); }
+.place-set > div { display: flex; flex-direction: column; min-width: 0; }
+.place-set .link { padding: 6px 0; flex: none; }

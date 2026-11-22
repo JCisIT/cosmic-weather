@@ -99,7 +99,7 @@ export async function getProfile(user) {
   return check(await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle())
 }
 
-const DESIGN_FIELDS = ['name', 'email', 'hd_type', 'hd_profile', 'authority', 'defined_centers', 'birth_date', 'birth_time', 'birth_place']
+const DESIGN_FIELDS = ['name', 'email', 'hd_type', 'hd_profile', 'authority', 'defined_centers', 'birth_date', 'birth_time', 'birth_place', 'birth_tz', 'home_place', 'places']
 
 // Only the fields a person may set. Role and tier are never sent from the browser.
 function designRow(p) {
@@ -155,11 +155,13 @@ export async function listEntries(user) {
   return check(await supabase.from('journal_entries').select('*').eq('user_id', user.id).order('entry_date', { ascending: false }).limit(200))
 }
 
+// Entries are permanent. Today's entry can be added to or reworded, but an empty save never wipes one out.
 export async function saveEntry(user, entry) {
   const row = { ...entry, user_id: user.id }
+  if (!row.body) return null
   if (demo) {
     const rest = local.get('entries', []).filter((e) => !(e.entry_date === row.entry_date && e.slot === row.slot))
-    local.set('entries', row.body ? [row, ...rest].sort((a, b) => (a.entry_date < b.entry_date ? 1 : -1)) : rest)
+    local.set('entries', [row, ...rest].sort((a, b) => (a.entry_date < b.entry_date ? 1 : -1)))
     return row
   }
   return check(await supabase.from('journal_entries').upsert(row, { onConflict: 'user_id,entry_date,slot' }).select().single())
@@ -194,7 +196,12 @@ export async function getCheckin(user, date) {
   return row?.feel ?? null
 }
 
+export async function listCheckins(user) {
+  if (demo) return Object.entries(local.get('checkins', {})).map(([entry_date, feel]) => ({ entry_date, feel }))
+  return check(await supabase.from('checkins').select('entry_date, feel').eq('user_id', user.id).order('entry_date', { ascending: false }).limit(400))
+}
+
 export async function saveCheckin(user, date, feel) {
   if (demo) return local.set('checkins', { ...local.get('checkins', {}), [date]: feel })
-  check(await supabase.from('checkins').upsert({ user_id: user.id, entry_date: date, feel }))
+  check(await supabase.from('checkins').upsert({ user_id: user.id, entry_date: date, feel: String(feel) }))
 }

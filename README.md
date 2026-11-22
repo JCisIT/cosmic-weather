@@ -33,7 +33,10 @@ With no Supabase keys it runs in **demo mode**: any email signs in and everythin
 
 | Path | What |
 |---|---|
-| `src/sky.js` | Sun, moon, phase and gate calculations |
+| `src/sky.js` | Sun, moon, phase and gate calculations for today |
+| `src/chart/` | Human Design chart from birth details (true node), with tests in `test/` |
+| `src/weather.js` | Live weather, air quality, stargazing and place search from Open-Meteo |
+| `src/insight.js` | The daily Human Design brief and plain-language wording for gates, lines, centers, types |
 | `src/content.js` | All the wording: insights, prompts, check-in words. Astra's copy goes here for now |
 | `src/store.js` | Logins and saving (Supabase, or browser storage in demo mode) |
 | `src/screens/` | Login, Today, My Design, Sessions, Journal, Studio (admins only) |
@@ -42,4 +45,4 @@ With no Supabase keys it runs in **demo mode**: any email signs in and everythin
 
 ## Not built yet
 
-Chart calculation from birth data, a content library Astra can edit herself, calendar and weather, payments, App Store build.
+Named incarnation crosses (the app shows the angle and four gates), a content library Astra can edit herself, calendar sync, payments, App Store build.
