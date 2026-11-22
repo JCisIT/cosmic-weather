@@ -15,6 +15,7 @@ export default function Journal({ user }) {
           dates.map((d) => ({
             date: d,
             feel: checkins.find((c) => c.entry_date === d)?.feel,
+            arrive: checkins.find((c) => c.entry_date === d)?.arrive,
             entries: entries.filter((e) => e.entry_date === d).sort((a, b) => (SLOT_ORDER[a.slot] ?? 2) - (SLOT_ORDER[b.slot] ?? 2)),
           }))
         )
@@ -39,7 +40,7 @@ export default function Journal({ user }) {
         <article key={d.date} className="tile">
           <div className="j-head">
             <span className="eyebrow">{new Date(d.date + 'T12:00').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</span>
-            {d.feel && <span className="j-feel">{Number(d.feel) ? `Feeling ${d.feel}/5` : d.feel}</span>}
+            {(d.feel || d.arrive) && <span className="j-feel">{d.arrive && d.feel ? `Arrived ${d.arrive}, left ${d.feel}` : Number(d.feel ?? d.arrive) ? `Feeling ${d.feel ?? d.arrive}/5` : d.feel}</span>}
           </div>
           {d.entries.map((e) => (
             <div key={e.slot} className="j-entry">

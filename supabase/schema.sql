@@ -129,3 +129,7 @@ begin
 end $$;
 drop trigger if exists guard_mantra on profiles;
 create trigger guard_mantra before update on profiles for each row execute function public.guard_mantra();
+
+-- Two check-in readings per day (fifth migration): "arrive" before reading, "feel" after.
+alter table checkins alter column feel drop not null;
+alter table checkins add column if not exists arrive text;

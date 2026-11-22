@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { sky, PHASES } from '../sky.js'
-import { BOOKING_URL, SAMPLE_MANTRA_TITLE, promptFor } from '../content.js'
+import { BOOKING_URL, SAMPLE_MANTRA, promptFor } from '../content.js'
 import { dayKey, listEntries, saveEntry, listCheckins, saveCheckin, mantraUrl } from '../store.js'
-import { getWeather, stargazing, UNITS } from '../weather.js'
+import { getWeatherAll, stargazing, localTime, distance, duration, UNITS } from '../weather.js'
 import { buildInsight, CENTER_PLAIN, TYPE_PLAIN, AUTHORITY_PLAIN, PROFILE_LINE } from '../insight.js'
 import { useChart } from '../chart/useChart.js'
 import MoonHero from '../MoonHero.jsx'
@@ -47,8 +47,12 @@ export default function Today({ user, profile, onGo }) {
   useEffect(() => {
     if (!homePlace) return
     setWeatherNote('')
-    getWeather(homePlace).then(setHome).catch(() => setWeatherNote('Weather is not answering right now.'))
-    Promise.all(places.map((p) => getWeather(p).then((w) => ({ ...w, name: p.name })).catch(() => ({ name: p.name, failed: true })))).then(setOthers)
+    getWeatherAll([homePlace, ...places])
+      .then(([h, ...rest]) => {
+        setHome(h)
+        setOthers(rest.map((w, i) => ({ ...w, name: places[i].name, place: places[i] })))
+      })
+      .catch(() => setWeatherNote('Weather is not answering right now.'))
   }, [homePlace?.lat, homePlace?.lon, JSON.stringify(places)])
 
   useEffect(() => {
@@ -60,13 +64,18 @@ export default function Today({ user, profile, onGo }) {
     listCheckins(user).then(setCheckins).catch(() => {})
   }, [user, today])
 
-  const feel = Number(checkins.find((c) => c.entry_date === today)?.feel) || null
+  const todayCheckin = checkins.find((c) => c.entry_date === today)
+  const feel = Number(todayCheckin?.feel) || null
+  const arrive = Number(todayCheckin?.arrive) || null
   const star = home ? stargazing(home.cloudTonight, s.illum) : null
 
-  const pick = async (n) => {
-    setCheckins([{ entry_date: today, feel: String(n) }, ...checkins.filter((c) => c.entry_date !== today)])
-    await saveCheckin(user, today, n).catch(() => {})
+  // kind is 'arrive' (tapped at the top, before reading) or 'feel' (tapped after the Human Design brief).
+  const pick = async (kind, n) => {
+    setCheckins([{ ...todayCheckin, entry_date: today, [kind]: String(n) }, ...checkins.filter((c) => c.entry_date !== today)])
+    await saveCheckin(user, today, { [kind]: n }).catch(() => {})
   }
+
+  const shift = arrive && feel ? (feel > arrive ? `You arrived at ${arrive} and you are at ${feel} now. Something lifted.` : feel < arrive ? `You arrived at ${arrive} and you are at ${feel} now. Be gentle with yourself today.` : `Steady at ${feel}, before and after.`) : null
 
   const write = async () => {
     try {
@@ -102,6 +111,14 @@ export default function Today({ user, profile, onGo }) {
           {insight.strategy && <p className="soft">For you, a {insight.type}: {insight.strategy}</p>}
           <a className="link light" href="#insight">See what it means for you</a>
         </div>
+        <div className="arrive">
+          <span>{arrive ? 'You arrived at' : 'Before you read on, how are you arriving?'}</span>
+          <div role="group" aria-label="How you are arriving, from 1 to 5">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button key={n} type="button" aria-pressed={arrive === n} aria-label={`${n} of 5, ${FEELS[n - 1]}`} onClick={() => pick('arrive', n)}>{n}</button>
+            ))}
+          </div>
+        </div>
         <MoonHero elong={s.elong} label={`${s.phase.name}, ${s.illum} percent lit`} />
         <div className="sky-caption">
           <span className="eyebrow gold">Tonight's sky</span>
@@ -126,11 +143,11 @@ export default function Today({ user, profile, onGo }) {
         </div>
       </section>
 
-      <MantraPlayer
+<MantraPlayer
         key={mantraSrc ?? 'sample'}
-        title={mantraSrc ? profile.mantra_title || 'Your mantra' : SAMPLE_MANTRA_TITLE}
+        title={mantraSrc ? profile.mantra_title || 'Your mantra' : SAMPLE_MANTRA.title}
         src={mantraSrc}
-        sample={!mantraSrc}
+        video={mantraSrc ? null : SAMPLE_MANTRA.youtube}
       />
 
       <InstallHint />
@@ -162,66 +179,40 @@ export default function Today({ user, profile, onGo }) {
             </div>
           </>
         )}
+        {home && (home.sunrise || home.sunset) && <span className="muted">Sunrise {home.sunrise} · Sunset {home.sunset}</span>}
         {others.length > 0 && (
-          <div className="wx-rows">
-            {others.map((o) => (
-              <div key={o.name} className="wx-row">
-                <b>{o.name.split(',')[0]}</b>
-                {o.failed ? <span className="muted">Not available</span> : (
-                  <>
-                    <span>{o.label}</span>
-                    <span>{o.temp}{UNITS.temp}</span>
-                    <span>{o.wind} {UNITS.wind}</span>
-                    <span>AQI {o.aqi ?? 'n/a'}</span>
-                  </>
-                )}
-              </div>
-            ))}
+          <div className="places">
+            <span className="eyebrow">Your other places</span>
+            {others.map((o) => {
+              if (o.failed) return <div key={o.name} className="place-card"><b>{o.name.split(',')[0]}</b><span className="muted">Not available right now</span></div>
+              const stars = stargazing(o.cloudTonight, s.illum)
+              const more = home?.daylightMin != null && o.daylightMin != null ? o.daylightMin - home.daylightMin : null
+              return (
+                <div key={o.name} className="place-card">
+                  <div className="place-top">
+                    <div>
+                      <b>{o.name.split(',')[0]}</b>
+                      <span className="muted">{localTime(o.place.tz)} there now · {distance(homePlace, o.place)} away</span>
+                    </div>
+                    <div className="place-wx">
+                      <WeatherIcon kind={o.kind} night={!o.isDay} size={34} />
+                      <b>{o.temp}{UNITS.temp}</b>
+                    </div>
+                  </div>
+                  <span>{o.label}, wind {o.wind} {UNITS.wind}, air quality {o.aqi ?? 'n/a'}{o.aqiLabel ? ` (${o.aqiLabel.toLowerCase()})` : ''}</span>
+                  <span className="muted">
+                    Sunrise {o.sunrise} · Sunset {o.sunset}
+                    {more != null && Math.abs(more) >= 5 ? ` · ${duration(Math.abs(more))} ${more > 0 ? 'more' : 'less'} daylight than home` : ''}
+                  </span>
+                  {stars && <span className="muted">Stargazing tonight: {stars.rating.toLowerCase()}. Same moon as yours.</span>}
+                </div>
+              )
+            })}
           </div>
         )}
       </section>
 
-      {/* 3. Daily check-in */}
-      <section className="tile">
-        <span className="eyebrow">Daily check-in</span>
-        <h3 className="prompt">How are you feeling today?</h3>
-        <div className="feels" role="group" aria-label="How you feel, from 1 to 5">
-          {FEELS.map((label, i) => (
-            <button key={label} type="button" aria-pressed={feel === i + 1} onClick={() => pick(i + 1)}>
-              <b>{i + 1}</b>
-              <span>{label}</span>
-            </button>
-          ))}
-        </div>
-        <label htmlFor="answer" className="prompt-q">{prompt}</label>
-        <textarea id="answer" rows="3" placeholder="Optional. A line or two." value={answer} onChange={(e) => { setAnswer(e.target.value); setSaved('') }} />
-        <label htmlFor="note">Anything else on your mind</label>
-        <textarea id="note" rows="3" placeholder="Optional." value={noteText} onChange={(e) => { setNoteText(e.target.value); setSaved('') }} />
-        <div className="row">
-          <button type="button" className="btn dark" onClick={write}>Save to journal</button>
-          <span className="muted" role="status">{saved}</span>
-        </div>
-      </section>
-
-      {/* 4. Living journal */}
-      <section className="tile">
-        <span className="eyebrow">Living journal</span>
-        {pastDays.length === 0 && <p className="muted">Each day you check in is kept here under its date. Nothing is ever deleted.</p>}
-        {pastDays.map((d) => {
-          const f = checkins.find((c) => c.entry_date === d)?.feel
-          const first = entries.find((e) => e.entry_date === d)
-          return (
-            <div key={d} className="j-row">
-              <b>{shortDate(d)}</b>
-              {f && <span className="j-feel">{Number(f) ? `${f}/5` : f}</span>}
-              <span className="j-text">{first?.body ?? 'Checked in'}</span>
-            </div>
-          )
-        })}
-        <button type="button" className="link" onClick={() => onGo('Journal')}>Open the full journal</button>
-      </section>
-
-      {/* 5. Human Design insight */}
+      {/* 3. Human Design insight */}
       <section className="tile insight" id="insight">
         <span className="eyebrow">Human Design today</span>
         <div className="gates">
@@ -247,6 +238,48 @@ export default function Today({ user, profile, onGo }) {
           <span className="eyebrow">Today's small lesson: {insight.lesson.title}</span>
           <p>{insight.lesson.body}</p>
         </div>
+      </section>
+
+      {/* 4. Daily check-in */}
+      <section className="tile">
+        <span className="eyebrow">Daily check-in</span>
+        <h3 className="prompt">{arrive ? 'Now that you have read today, how do you feel?' : 'How are you feeling today?'}</h3>
+        <div className="feels" role="group" aria-label="How you feel, from 1 to 5">
+          {FEELS.map((label, i) => (
+            <button key={label} type="button" aria-pressed={feel === i + 1} onClick={() => pick('feel', i + 1)}>
+              <b>{i + 1}</b>
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
+        {shift && <p className="shift" role="status">{shift}</p>}
+        <label htmlFor="answer" className="prompt-q">{prompt}</label>
+        <textarea id="answer" rows="3" placeholder="Optional. A line or two." value={answer} onChange={(e) => { setAnswer(e.target.value); setSaved('') }} />
+        <label htmlFor="note">Anything else on your mind</label>
+        <textarea id="note" rows="3" placeholder="Optional." value={noteText} onChange={(e) => { setNoteText(e.target.value); setSaved('') }} />
+        <div className="row">
+          <button type="button" className="btn dark" onClick={write}>Save to journal</button>
+          <span className="muted" role="status">{saved}</span>
+        </div>
+      </section>
+
+      {/* 5. Living journal */}
+      <section className="tile">
+        <span className="eyebrow">Living journal</span>
+        {pastDays.length === 0 && <p className="muted">Each day you check in is kept here under its date. Nothing is ever deleted.</p>}
+        {pastDays.map((d) => {
+          const c = checkins.find((x) => x.entry_date === d)
+          const f = c?.arrive && c?.feel ? `${c.arrive} → ${c.feel}` : c?.feel ?? c?.arrive
+          const first = entries.find((e) => e.entry_date === d)
+          return (
+            <div key={d} className="j-row">
+              <b>{shortDate(d)}</b>
+              {f && <span className="j-feel">{Number(f) ? `${f}/5` : f}</span>}
+              <span className="j-text">{first?.body ?? 'Checked in'}</span>
+            </div>
+          )
+        })}
+        <button type="button" className="link" onClick={() => onGo('Journal')}>Open the full journal</button>
       </section>
 
       {/* 6. Their chart, as a compact reference */}

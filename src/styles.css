@@ -251,3 +251,23 @@ input[type='file'] { padding: 10px; }
 html { scroll-behavior: smooth; }
 #insight { scroll-margin-top: 16px; }
 .tabs button { display: grid; place-items: center; }
+
+/* ---------- arrival tap and the before/after line ---------- */
+.arrive { align-self: stretch; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 14px; color: var(--soft); text-align: left; }
+.arrive div { display: flex; gap: 6px; }
+.arrive button { width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(211, 169, 85, 0.5); background: rgba(242, 236, 255, 0.06); color: var(--lilac); font-family: var(--display); font-size: 20px; font-weight: 700; cursor: pointer; }
+.arrive button[aria-pressed='true'] { background: var(--gold); border-color: var(--gold); color: var(--purple); }
+.shift { background: var(--lilac); border-radius: 14px; padding: 12px 14px; font-weight: 500; }
+
+/* ---------- other places ---------- */
+.places { display: flex; flex-direction: column; gap: 10px; padding-top: 6px; }
+.place-card { background: var(--lilac); border-radius: 18px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.place-card .muted { font-size: 13px; }
+.place-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.place-top > div:first-child { display: flex; flex-direction: column; min-width: 0; }
+.place-top b { font-family: var(--display); font-size: 24px; line-height: 1.1; }
+.place-wx { display: flex; align-items: center; gap: 6px; flex: none; }
+
+/* ---------- mantra with a video ---------- */
+.mantra { flex-wrap: wrap; }
+.mantra-video { flex-basis: 100%; aspect-ratio: 16 / 9; border: 0; border-radius: 16px; background: #000; }

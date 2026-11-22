@@ -206,18 +206,20 @@ export async function toggleTodo(user, todo) {
 }
 
 /* ---------- evening check-in ---------- */
-export async function getCheckin(user, date) {
-  if (demo) return local.get('checkins', {})[date] ?? null
-  const row = check(await supabase.from('checkins').select('feel').eq('user_id', user.id).eq('entry_date', date).maybeSingle())
-  return row?.feel ?? null
-}
+// Demo storage keeps { arrive, feel } per date; older demo data stored a bare value for feel.
+const demoCheckin = (v) => (v && typeof v === 'object' ? v : { feel: v ?? null, arrive: null })
 
 export async function listCheckins(user) {
-  if (demo) return Object.entries(local.get('checkins', {})).map(([entry_date, feel]) => ({ entry_date, feel }))
-  return check(await supabase.from('checkins').select('entry_date, feel').eq('user_id', user.id).order('entry_date', { ascending: false }).limit(400))
+  if (demo) return Object.entries(local.get('checkins', {})).map(([entry_date, v]) => ({ entry_date, ...demoCheckin(v) }))
+  return check(await supabase.from('checkins').select('entry_date, feel, arrive').eq('user_id', user.id).order('entry_date', { ascending: false }).limit(400))
 }
 
-export async function saveCheckin(user, date, feel) {
-  if (demo) return local.set('checkins', { ...local.get('checkins', {}), [date]: feel })
-  check(await supabase.from('checkins').upsert({ user_id: user.id, entry_date: date, feel: String(feel) }))
+// fields is { arrive } or { feel }. Only the reading given is written, so one never wipes the other.
+export async function saveCheckin(user, date, fields) {
+  const row = Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, String(v)]))
+  if (demo) {
+    const all = local.get('checkins', {})
+    return local.set('checkins', { ...all, [date]: { ...demoCheckin(all[date]), ...row } })
+  }
+  check(await supabase.from('checkins').upsert({ user_id: user.id, entry_date: date, ...row }))
 }

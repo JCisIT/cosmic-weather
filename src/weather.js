@@ -30,7 +30,10 @@ async function getJson(url, tries = 2) {
     return await res.json()
   } catch (e) {
     // One quiet retry covers a dropped connection.
-    if (tries > 1) return getJson(url, tries - 1)
+    if (tries > 1) {
+      await new Promise((r) => setTimeout(r, 1200))
+      return getJson(url, tries - 1)
+    }
     throw e
   }
 }
@@ -58,13 +61,31 @@ function cloudTonight(hourly, nowHour) {
   return hours.length ? Math.round(hours.reduce((a, b) => a + b, 0) / hours.length) : null
 }
 
-export async function getWeather(place) {
-  const q = `latitude=${place.lat}&longitude=${place.lon}&timezone=auto`
-  const unit = US ? '&temperature_unit=fahrenheit&wind_speed_unit=mph' : ''
-  const [w, air] = await Promise.all([
-    getJson(`https://api.open-meteo.com/v1/forecast?${q}&current=temperature_2m,weather_code,wind_speed_10m,cloud_cover,is_day&hourly=cloud_cover&daily=temperature_2m_max,temperature_2m_min&forecast_days=2${unit}`),
-    getJson(`https://air-quality-api.open-meteo.com/v1/air-quality?${q}&current=us_aqi`).catch(() => null),
-  ])
+// '2026-11-21T06:59' (already in the place's own time) becomes '6:59 am'.
+function clockTime(iso) {
+  if (!iso) return null
+  const [h, m] = iso.slice(11, 16).split(':').map(Number)
+  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`
+}
+
+export function localTime(tz) {
+  try {
+    return new Date().toLocaleTimeString([], { timeZone: tz, hour: 'numeric', minute: '2-digit' })
+  } catch {
+    return null
+  }
+}
+
+// Straight-line distance between two places, in the person's own units.
+export function distance(a, b) {
+  const rad = (d) => (d * Math.PI) / 180
+  const h = Math.sin(rad(b.lat - a.lat) / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(rad(b.lon - a.lon) / 2) ** 2
+  const km = 12742 * Math.asin(Math.sqrt(h))
+  const n = US ? km * 0.621371 : km
+  return `${Math.round(n).toLocaleString()} ${US ? 'miles' : 'km'}`
+}
+
+function shape(w, air) {
   const [label, kind] = WMO[w.current.weather_code] ?? ['Unsettled', 'cloud']
   const aqi = air?.current?.us_aqi ?? null
   return {
@@ -76,9 +97,50 @@ export async function getWeather(place) {
     high: Math.round(w.daily.temperature_2m_max[0]),
     low: Math.round(w.daily.temperature_2m_min[0]),
     cloudTonight: cloudTonight(w.hourly, Number(w.current.time.slice(11, 13))),
+    sunrise: clockTime(w.daily.sunrise?.[0]),
+    sunset: clockTime(w.daily.sunset?.[0]),
+    daylightMin: w.daily.daylight_duration?.[0] != null ? Math.round(w.daily.daylight_duration[0] / 60) : null,
     aqi,
     aqiLabel: aqiLabel(aqi),
   }
+}
+
+const CACHE_MINUTES = 10
+
+// Weather for several places in ONE request each to the forecast and air-quality services, kept for ten minutes
+// so flipping between tabs does not ask again. Returns one result per place, in the same order.
+export async function getWeatherAll(places) {
+  if (!places.length) return []
+  const key = 'cw:wx:' + places.map((p) => `${p.lat},${p.lon}`).join('|')
+  try {
+    const hit = JSON.parse(sessionStorage.getItem(key))
+    if (hit && Date.now() - hit.at < CACHE_MINUTES * 60000) return hit.data
+  } catch {
+    /* no cache available: just fetch */
+  }
+  const q = `latitude=${places.map((p) => p.lat).join(',')}&longitude=${places.map((p) => p.lon).join(',')}&timezone=auto`
+  const unit = US ? '&temperature_unit=fahrenheit&wind_speed_unit=mph' : ''
+  const [w, air] = await Promise.all([
+    getJson(`https://api.open-meteo.com/v1/forecast?${q}&current=temperature_2m,weather_code,wind_speed_10m,cloud_cover,is_day&hourly=cloud_cover&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,daylight_duration&forecast_days=2${unit}`),
+    getJson(`https://air-quality-api.open-meteo.com/v1/air-quality?${q}&current=us_aqi`).catch(() => null),
+  ])
+  // One place comes back as an object, several as a list.
+  const ws = Array.isArray(w) ? w : [w]
+  const airs = air ? (Array.isArray(air) ? air : [air]) : []
+  const data = ws.map((one, i) => shape(one, airs[i]))
+  try {
+    sessionStorage.setItem(key, JSON.stringify({ at: Date.now(), data }))
+  } catch {
+    /* fine without a cache */
+  }
+  return data
+}
+
+// Minutes as '4 hr 5 min'.
+export function duration(min) {
+  const h = Math.floor(min / 60)
+  const m = min % 60
+  return [h ? `${h} hr` : null, m ? `${m} min` : null].filter(Boolean).join(' ')
 }
 
 // Stargazing depends on two things: how much cloud is in the way, and how much moonlight washes out faint stars.
