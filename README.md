@@ -16,15 +16,18 @@ npm run dev
 
 With no Supabase keys it runs in **demo mode**: any email signs in and everything saves in that browser only.
 
-## Going live (JC's checklist)
+## How it is hosted
 
-1. **GitHub**: create an empty repo and push this folder to `main`.
-2. **Supabase**: create a project. In SQL Editor, paste and run `supabase/schema.sql`.
-3. **Supabase keys**: copy the Project URL and anon key from Project Settings > API. In the GitHub repo, add them under Settings > Secrets and variables > Actions > **Variables** as `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
-4. **GitHub Pages**: repo Settings > Pages > Source: GitHub Actions. Each push to `main` then deploys.
-5. **Domain**: in Pages settings set the custom domain to `app.joyfulpurposecoaching.com`, and at the domain registrar add a CNAME record `app` pointing to `<github-username>.github.io`.
-6. **Supabase sign-in settings**: Authentication > URL Configuration, set Site URL to `https://app.joyfulpurposecoaching.com`.
-7. **Google sign-in** (optional, can come later): create an OAuth client in Google Cloud Console, then paste its ID and secret into Supabase > Authentication > Providers > Google.
+- **Code**: this repo. Every push to `main` deploys to GitHub Pages through `.github/workflows/deploy.yml`.
+- **Database and logins**: Supabase project `cosmic-weather`. Its URL and publishable key are in `.env.production` (public by design; the database rules do the protecting).
+- **Live address**: https://jcisit.github.io/cosmic-weather/ until the custom domain is set.
+
+## Still to do by hand
+
+1. **Supabase sign-in links**: Authentication > URL Configuration. Set Site URL to the live address and add it under Redirect URLs.
+2. **Admins**: after someone signs in once, run `update profiles set role = 'admin' where email = '...'` in the SQL Editor to give them the Studio tab.
+3. **Custom domain**: add a CNAME record `app` pointing to `jcisit.github.io` at the domain registrar, then set the custom domain in repo Settings > Pages and update the Supabase URLs to match.
+4. **Google sign-in**: create an OAuth client in Google Cloud Console and paste its ID and secret into Supabase > Authentication > Providers > Google.
 
 ## Where things live
 
@@ -33,10 +36,10 @@ With no Supabase keys it runs in **demo mode**: any email signs in and everythin
 | `src/sky.js` | Sun, moon, phase and gate calculations |
 | `src/content.js` | All the wording: insights, prompts, check-in words. Astra's copy goes here for now |
 | `src/store.js` | Logins and saving (Supabase, or browser storage in demo mode) |
-| `src/screens/` | Login, Today, My Design, Sessions, Journal |
+| `src/screens/` | Login, Today, My Design, Sessions, Journal, Studio (admins only) |
 | `src/styles.css` | Brand colors and layout |
 | `supabase/schema.sql` | Database tables and privacy rules |
 
 ## Not built yet
 
-Chart calculation from birth data, Astra's studio (recaps, action steps, content library), calendar and weather, payments, App Store build.
+Chart calculation from birth data, a content library Astra can edit herself, calendar and weather, payments, App Store build.

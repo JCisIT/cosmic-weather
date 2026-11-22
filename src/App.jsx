@@ -5,6 +5,7 @@ import Design from './screens/Design.jsx'
 import Today from './screens/Today.jsx'
 import Journal from './screens/Journal.jsx'
 import Sessions from './screens/Sessions.jsx'
+import Studio from './screens/Studio.jsx'
 
 const TABS = ['Today', 'My Design', 'Sessions', 'Journal']
 
@@ -37,17 +38,20 @@ export default function App() {
   // First visit: collect the basics of their design before showing the day.
   if (!profile) return <Design user={user} profile={null} onSaved={setProfile} first />
 
+  const tabs = profile.role === 'admin' ? [...TABS, 'Studio'] : TABS
+
   return (
     <div className="app">
       <main className="screen">
         {tab === 'Today' && <Today user={user} profile={profile} />}
         {tab === 'My Design' && <Design user={user} profile={profile} onSaved={setProfile} onSignOut={leave} />}
-        {tab === 'Sessions' && <Sessions />}
+        {tab === 'Sessions' && <Sessions user={user} />}
+        {tab === 'Studio' && <Studio user={user} />}
         {tab === 'Journal' && <Journal user={user} />}
         {demo && <p className="demo-note">Demo mode: entries are saved on this device only.</p>}
       </main>
-      <nav className="tabs" aria-label="App sections">
-        {TABS.map((t) => (
+      <nav className="tabs" aria-label="App sections" style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}>
+        {tabs.map((t) => (
           <button key={t} type="button" className={t === tab ? 'on' : ''} aria-current={t === tab ? 'page' : undefined} onClick={() => { setTab(t); window.scrollTo(0, 0) }}>
             {t}
           </button>

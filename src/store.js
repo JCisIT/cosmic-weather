@@ -32,6 +32,8 @@ function check({ data, error }) {
   return data
 }
 
+const here = () => window.location.origin + window.location.pathname
+
 /* ---------- auth ---------- */
 export async function getUser() {
   if (demo) return local.get('user', null)
@@ -51,13 +53,13 @@ export async function signInWithEmail(email) {
     local.set('user', user)
     return { user }
   }
-  check(await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.origin } }))
+  check(await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: here() } }))
   return { sent: true }
 }
 
 export async function signInWithGoogle() {
   if (demo) throw new Error('Google sign-in turns on once the app is connected to its database.')
-  check(await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }))
+  check(await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: here() } }))
 }
 
 export async function signOut() {
@@ -71,10 +73,54 @@ export async function getProfile(user) {
   return check(await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle())
 }
 
+const DESIGN_FIELDS = ['name', 'email', 'hd_type', 'hd_profile', 'authority', 'defined_centers', 'birth_date', 'birth_time', 'birth_place']
+
+// Only the fields a person may set. Role and tier are never sent from the browser.
+function designRow(p) {
+  const row = {}
+  for (const k of DESIGN_FIELDS) if (p[k] !== undefined) row[k] = p[k] === '' ? null : p[k]
+  return row
+}
+
 export async function saveProfile(user, profile) {
-  const row = { ...profile, id: user.id }
-  if (demo) return local.set('profile', row), row
+  const row = { ...designRow(profile), id: user.id }
+  if (demo) {
+    const merged = { ...local.get('profile', {}), ...row }
+    local.set('profile', merged)
+    return merged
+  }
   return check(await supabase.from('profiles').upsert(row).select().single())
+}
+
+/* ---------- sessions with Astra ---------- */
+export async function listSessions(clientId) {
+  if (demo) return local.get('sessions', []).filter((s) => s.client_id === clientId)
+  return check(await supabase.from('sessions').select('*').eq('client_id', clientId).order('session_date', { ascending: false }))
+}
+
+/* ---------- studio (admin only; the database enforces it) ---------- */
+export async function listClients() {
+  if (demo) return [local.get('profile', null)].filter(Boolean)
+  return check(await supabase.from('profiles').select('*').order('name'))
+}
+
+export async function saveClientDesign(clientId, fields) {
+  if (demo) return saveProfile({ id: clientId }, fields)
+  return check(await supabase.from('profiles').update(designRow(fields)).eq('id', clientId).select().single())
+}
+
+export async function addSession(admin, clientId, { session_date, title, recap, steps }) {
+  const row = { client_id: clientId, session_date, title, recap, created_by: admin.id }
+  const todos = steps.map((s) => ({ user_id: clientId, title: s, source: 'session', done: false }))
+  if (demo) {
+    const saved = { ...row, id: String(Date.now()) }
+    local.set('sessions', [saved, ...local.get('sessions', [])])
+    local.set('todos', [...local.get('todos', []), ...todos.map((t, i) => ({ ...t, id: `${Date.now()}-${i}` }))])
+    return saved
+  }
+  const saved = check(await supabase.from('sessions').insert(row).select().single())
+  if (todos.length) check(await supabase.from('todos').insert(todos))
+  return saved
 }
 
 /* ---------- journal ---------- */

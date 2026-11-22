@@ -8,8 +8,16 @@ A daily page for your clients and community. Each morning it shows the moon, the
 
 - They open the link on their phone or computer.
 - They sign in with **their Google account** or **their email** (we send a sign-in link, so there is no password to remember).
-- The first time, they enter their first name and the basics of their design: type, profile, authority and defined centers.
+- The first time, they enter their first name and birth date, time and city. If they already know their type, profile, authority and defined centers they can add those too; if not, you add them from the Studio.
 - On a phone they can add it to their home screen so it opens like an app.
+
+## Your Studio
+
+You see one extra tab that clients do not: **Studio**.
+
+- **Your people**: everyone who has signed in, with their birth details.
+- **Their design**: set or correct a person's type, profile, authority and defined centers. Their daily page updates right away.
+- **Add a session recap**: date, title, what you covered, and action steps (one per line). The recap shows on their Sessions tab and each action step lands in their to-do list marked "1:1".
 
 ## What you can shape
 
@@ -33,7 +41,6 @@ Write as many prompts per phase as you like. More prompts means less repeating.
 
 ## What is coming later
 
-- Your studio: write session recaps and action steps that land in a client's app.
 - Charts calculated from birth details, so clients do not type their design in.
 - Your weekly voice note inside the app.
 - Paid membership, then the App Store.
