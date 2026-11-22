@@ -113,6 +113,35 @@ export function placeEnergy(weather, where, type) {
   return `${sky} in ${where} right now. For a ${type}: ${MOOD[mood][type]}.`
 }
 
+const TYPE_PROMPTS = {
+  Generator: ['What did your gut say yes to lately that your mind tried to talk you out of?', 'What are you still doing out of obligation that your body is done with?'],
+  'Manifesting Generator': ['Which of your many threads actually lights you up today?', 'Where did you skip a step, and what did it teach you?'],
+  Projector: ['Where are you giving advice nobody asked for, and what would waiting feel like?', 'Who truly sees you, and have you let them invite you in?'],
+  Manifestor: ['What do you want to start that you have not told anyone about?', 'Who needs to hear from you before your next move?'],
+  Reflector: ['Whose mood have you been carrying that is not yours?', 'What has stayed true for you across this whole moon cycle?'],
+  none: ['What are you pretending not to know?', 'What would you do today if you trusted yourself completely?'],
+}
+
+export const EXPERIMENT = {
+  Generator: 'Before you agree to anything today, wait for the sound your gut makes. No sound, no yes.',
+  'Manifesting Generator': 'Pick the one thing that excites you most, and let yourself drop one that does not.',
+  Projector: 'Hold back one piece of advice today and see who asks for it.',
+  Manifestor: 'Tell one person what you are about to do before you do it.',
+  Reflector: 'Notice how you feel in three different rooms or places today.',
+  none: 'Notice one moment today when your body decides before your mind does.',
+}
+
+// Three prompts for the day, from three directions. The person answers only one.
+export function threePrompts(moonPrompt, sunGate, type, date) {
+  const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000)
+  const mine = TYPE_PROMPTS[type] ?? TYPE_PROMPTS.none
+  return [
+    { from: 'From the moon', text: moonPrompt },
+    { from: `From today's gate`, text: `Today's theme is ${GATE_PLAIN[sunGate]}. Where is that alive in you right now?` },
+    { from: type ? `For a ${type}` : 'For you', text: mine[dayOfYear % mine.length] },
+  ]
+}
+
 const partnerOf = (gate, owned) => CHANNELS.filter(([a, b]) => (a === gate && owned.has(b)) || (b === gate && owned.has(a)))
 
 function describe(act) {
@@ -155,5 +184,6 @@ export function buildInsight(s, chart, profile, date) {
 
   const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000)
   const [title, body] = LESSONS[dayOfYear % LESSONS.length]
-  return { sun, earth, personal, hook, theme, type, strategy: TYPE_STRATEGY[type] ?? null, lesson: { title, body } }
+  const borrowed = completes ? [completes[2], completes[3]] : null
+  return { sun, earth, personal, hook, theme, type, strategy: TYPE_STRATEGY[type] ?? null, experiment: EXPERIMENT[type] ?? EXPERIMENT.none, borrowed, definedCenters, lesson: { title, body } }
 }

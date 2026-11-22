@@ -3,13 +3,14 @@ import { sky, PHASES } from '../sky.js'
 import { BOOKING_URL, SAMPLE_MANTRA, promptFor } from '../content.js'
 import { dayKey, listEntries, saveEntry, listCheckins, saveCheckin, mantraUrl } from '../store.js'
 import { getWeatherAll, stargazing, localTime, distance, duration, UNITS } from '../weather.js'
-import { buildInsight, placeEnergy, CENTER_PLAIN, TYPE_PLAIN, AUTHORITY_PLAIN, PROFILE_LINE } from '../insight.js'
+import { buildInsight, placeEnergy, threePrompts, CENTER_PLAIN, TYPE_PLAIN, AUTHORITY_PLAIN, PROFILE_LINE } from '../insight.js'
 import { useChart } from '../chart/useChart.js'
 import MoonHero from '../MoonHero.jsx'
 import StarField from '../StarField.jsx'
 import MantraPlayer from '../MantraPlayer.jsx'
 import InstallHint from '../InstallHint.jsx'
 import Flourish from '../Flourish.jsx'
+import Bodygraph from '../Bodygraph.jsx'
 import WeatherIcon from '../WeatherIcon.jsx'
 
 const FEELS = ['Low', 'Tender', 'Steady', 'Good', 'Bright']
@@ -33,8 +34,8 @@ export default function Today({ user, profile, onGo }) {
   const [weatherNote, setWeatherNote] = useState('')
   const [entries, setEntries] = useState([])
   const [checkins, setCheckins] = useState([])
+  const [chosen, setChosen] = useState(null) // the one prompt they picked today
   const [answer, setAnswer] = useState('')
-  const [noteText, setNoteText] = useState('')
   const [saved, setSaved] = useState('')
   const [mantraSrc, setMantraSrc] = useState(null)
 
@@ -66,8 +67,9 @@ export default function Today({ user, profile, onGo }) {
   useEffect(() => {
     listEntries(user).then((all) => {
       setEntries(all)
-      setAnswer(all.find((e) => e.entry_date === today && e.slot === 'prompt')?.body ?? '')
-      setNoteText(all.find((e) => e.entry_date === today && e.slot === 'note')?.body ?? '')
+      const mine = all.find((e) => e.entry_date === today && e.slot === 'prompt')
+      setChosen(mine?.prompt ?? null)
+      setAnswer(mine?.body ?? '')
     }).catch(() => {})
     listCheckins(user).then(setCheckins).catch(() => {})
   }, [user, today])
@@ -85,15 +87,14 @@ export default function Today({ user, profile, onGo }) {
 
   const shift = arrive && feel ? (feel > arrive ? `You arrived at ${arrive} and you are at ${feel} now. Something lifted.` : feel < arrive ? `You arrived at ${arrive} and you are at ${feel} now. Be gentle with yourself today.` : `Steady at ${feel}, before and after.`) : null
 
+  const prompts = useMemo(() => threePrompts(prompt, s.sunGate.num, type, now), [prompt, s, type, now])
+
   const write = async () => {
+    if (!chosen && !answer.trim()) return setSaved('Choose a prompt or write something first.')
     try {
-      const rows = [
-        answer.trim() && { entry_date: today, slot: 'prompt', prompt, body: answer.trim() },
-        noteText.trim() && { entry_date: today, slot: 'note', prompt: null, body: noteText.trim() },
-      ].filter(Boolean)
-      if (!rows.length) return setSaved('Write something first.')
-      for (const r of rows) await saveEntry(user, r)
-      setEntries([...rows, ...entries.filter((e) => e.entry_date !== today)])
+      const row = { entry_date: today, slot: 'prompt', prompt: chosen, body: answer.trim() || null }
+      await saveEntry(user, row)
+      setEntries([row, ...entries.filter((e) => !(e.entry_date === today && e.slot === 'prompt'))])
       setSaved('Saved to your journal')
     } catch {
       setSaved('Could not save. Try again.')
@@ -182,8 +183,34 @@ export default function Today({ user, profile, onGo }) {
         </div>
       </section>
 
-      {/* 3. Daily check-in */}
-      <section className="tile checkin">
+      {/* 3. Their design, lit up by today's sky */}
+      <section className="tile lit">
+        <span className="eyebrow">Your design, lit up today</span>
+        <h3 className="prompt">Where today is landing in you</h3>
+        <Bodygraph
+          defined={insight.definedCenters}
+          channels={(chart?.channels ?? []).map((c) => c.centers)}
+          today={[insight.sun.center, insight.earth.center]}
+          borrowed={insight.borrowed}
+          label={`Bodygraph. Today's Sun is in the ${insight.sun.center} center and the Earth is in the ${insight.earth.center} center.`}
+        />
+        <div className="legend">
+          <span><i className="k-mine" />Yours, always on</span>
+          <span><i className="k-open" />Open, takes in others</span>
+          <span><i className="k-ring" />Lit by today's sky</span>
+        </div>
+        <p>
+          The glowing rings show where today's Sun and Earth are landing: your <b>{insight.sun.center}</b> ({CENTER_PLAIN[insight.sun.center]}) and your <b>{insight.earth.center}</b> ({CENTER_PLAIN[insight.earth.center]}).
+          {insight.borrowed ? ' The dashed gold line is a channel today completes for you, switched on for a few days.' : ''}
+        </p>
+        <div className="experiment">
+          <span className="eyebrow">Today's experiment</span>
+          <p>{insight.experiment}</p>
+        </div>
+      </section>
+
+      {/* 4. Daily check-in */}
+      <section className="tile dark checkin">
         <Flourish />
         <span className="eyebrow">Daily check-in</span>
         <h3 className="prompt">{arrive ? 'Now that you have read today, how do you feel?' : 'How are you feeling today?'}</h3>
@@ -196,18 +223,26 @@ export default function Today({ user, profile, onGo }) {
           ))}
         </div>
         {shift && <p className="shift" role="status">{shift}</p>}
-        <label htmlFor="answer" className="prompt-q">{prompt}</label>
-        <textarea id="answer" rows="3" placeholder="Optional. A line or two." value={answer} onChange={(e) => { setAnswer(e.target.value); setSaved('') }} />
-        <label htmlFor="note">Anything else on your mind</label>
-        <textarea id="note" rows="3" placeholder="Optional." value={noteText} onChange={(e) => { setNoteText(e.target.value); setSaved('') }} />
+
+        <span className="eyebrow pick-one">Choose one to sit with</span>
+        <div className="prompts" role="group" aria-label="Choose one prompt">
+          {prompts.map((p) => (
+            <button key={p.text} type="button" aria-pressed={chosen === p.text} onClick={() => { setChosen(p.text); setSaved('') }}>
+              <span>{p.from}</span>
+              <b>{p.text}</b>
+            </button>
+          ))}
+        </div>
+        <label htmlFor="answer" className="sr">Your notes</label>
+        <textarea id="answer" rows="4" placeholder={chosen ? 'Write whatever comes.' : 'Pick one above, then write whatever comes.'} value={answer} onChange={(e) => { setAnswer(e.target.value); setSaved('') }} />
         <div className="row">
           <button type="button" className="btn dark" onClick={write}>Save to journal</button>
           <span className="muted" role="status">{saved}</span>
         </div>
       </section>
 
-      {/* 4. Living journal */}
-      <section className="tile dark">
+      {/* 5. Living journal */}
+      <section className="tile">
         <span className="eyebrow">Living journal</span>
         {pastDays.length === 0 && <p className="muted">Each day you check in is kept here under its date. Nothing is ever deleted.</p>}
         {pastDays.map((d) => {
@@ -218,16 +253,16 @@ export default function Today({ user, profile, onGo }) {
             <div key={d} className="j-row">
               <b>{shortDate(d)}</b>
               {f && <span className="j-feel">{Number(f) ? `${f}/5` : f}</span>}
-              <span className="j-text">{first?.body ?? 'Checked in'}</span>
+              <span className="j-text">{first?.body ?? first?.prompt ?? 'Checked in'}</span>
             </div>
           )
         })}
         <button type="button" className="link" onClick={() => onGo('Journal')}>Open the full journal</button>
       </section>
 
-      {/* 5. Weather, tonight's sky and their places */}
+      {/* 6. Weather, tonight's sky and their places */}
       {homePlace && (
-        <section className="tile">
+        <section className="tile dark weather">
           <span className="eyebrow">Weather and tonight's sky</span>
           {!home && <p className="muted">{weatherNote || `Checking the weather in ${homePlace.name}.`}</p>}
           {home && (
@@ -290,9 +325,9 @@ export default function Today({ user, profile, onGo }) {
         </section>
       )}
 
-      {/* 6. Their chart, as a compact reference */}
+      {/* 7. Their chart, as a compact reference */}
       {(chart || profile.hd_type) && (
-        <section className="tile dark chart">
+        <section className="tile chart">
           <span className="eyebrow">Your chart</span>
           {chart ? (
             <>
@@ -318,11 +353,11 @@ export default function Today({ user, profile, onGo }) {
         </section>
       )}
 
-      <section className="tile invite">
-        <span className="eyebrow">From Astra</span>
+      <section className="tile astra">
+        <span className="eyebrow gold">From Astra</span>
         <h3>Go deeper with your design</h3>
-        <span className="muted">A reading or 1:1 coaching turns the daily weather into a path that is yours.</span>
-        <a className="btn dark" href={BOOKING_URL} target="_blank" rel="noreferrer">Book your discovery call</a>
+        <span className="soft">A reading or 1:1 coaching turns the daily weather into a path that is yours.</span>
+        <a className="btn gold" href={BOOKING_URL} target="_blank" rel="noreferrer">Book your discovery call</a>
       </section>
     </>
   )

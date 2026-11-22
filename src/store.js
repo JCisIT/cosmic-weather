@@ -174,7 +174,7 @@ export async function listEntries(user) {
 // Entries are permanent. Today's entry can be added to or reworded, but an empty save never wipes one out.
 export async function saveEntry(user, entry) {
   const row = { ...entry, user_id: user.id }
-  if (!row.body) return null
+  if (!row.body && !row.prompt) return null
   if (demo) {
     const rest = local.get('entries', []).filter((e) => !(e.entry_date === row.entry_date && e.slot === row.slot))
     local.set('entries', [row, ...rest].sort((a, b) => (a.entry_date < b.entry_date ? 1 : -1)))

@@ -45,7 +45,7 @@ export default function Journal({ user }) {
           {d.entries.map((e) => (
             <div key={e.slot} className="j-entry">
               {e.prompt && <h3 className="prompt">{e.prompt}</h3>}
-              <p className="entry">{e.body}</p>
+              {e.body && <p className="entry">{e.body}</p>}
             </div>
           ))}
         </article>

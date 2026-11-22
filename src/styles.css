@@ -336,3 +336,55 @@ html { scroll-behavior: smooth; }
 .tile.checkin .row { justify-content: center; }
 .arrive .dial { display: grid; gap: 10px; }
 .arrive .dial button, .arrive .dial button[aria-pressed='true'] { width: auto; height: auto; border: 0; border-radius: 0; background: none; font-size: inherit; color: inherit; }
+
+/* ---------- bodygraph panel ---------- */
+.tile.lit { align-items: center; text-align: center; }
+.bodygraph { width: min(72vw, 250px); height: auto; overflow: visible; }
+.bg-path { stroke: var(--lilac-2); stroke-width: 5; stroke-linecap: round; }
+.bg-path.mine { stroke: var(--gold); stroke-width: 6; }
+.bg-path.lent { stroke: var(--gold); stroke-width: 5; stroke-dasharray: 3 8; animation: march 1.6s linear infinite; }
+.bg-center { fill: var(--white); stroke: #b9a7df; stroke-width: 2; stroke-linejoin: round; }
+.bg-center.mine { fill: var(--gold); stroke: var(--purple); }
+.bg-ring { fill: rgba(211, 169, 85, 0.16); stroke: var(--gold); stroke-width: 2; transform-origin: center; transform-box: fill-box; animation: ring 2.4s ease-in-out infinite; }
+@keyframes ring { 0%, 100% { transform: scale(0.82); opacity: 0.55; } 50% { transform: scale(1.12); opacity: 1; } }
+@keyframes march { to { stroke-dashoffset: -22; } }
+@media (prefers-reduced-motion: reduce) { .bg-ring, .bg-path.lent { animation: none; } }
+.legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; font-size: 12px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 13px; height: 13px; border-radius: 4px; display: inline-block; }
+.k-mine { background: var(--gold); border: 1.5px solid var(--purple); }
+.k-open { background: var(--white); border: 1.5px solid #b9a7df; }
+.k-ring { border-radius: 50% !important; background: rgba(211, 169, 85, 0.25); border: 1.5px solid var(--gold); }
+.experiment { align-self: stretch; background: var(--purple); color: var(--lilac); border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 6px; }
+.experiment .eyebrow { color: var(--gold); }
+.experiment p { font-family: var(--display); font-style: italic; font-weight: 600; font-size: 22px; line-height: 1.25; }
+
+/* ---------- three prompts, choose one ---------- */
+.pick-one { margin-top: 10px; }
+.prompts { align-self: stretch; display: flex; flex-direction: column; gap: 10px; }
+.prompts button { text-align: left; padding: 16px 18px; border-radius: 20px; border: 1px solid rgba(211, 169, 85, 0.45); background: var(--purple-2); color: var(--lilac); cursor: pointer; display: flex; flex-direction: column; gap: 6px; transition: transform 0.15s ease, opacity 0.15s ease; }
+.prompts span { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); }
+.prompts b { font-family: var(--display); font-style: italic; font-weight: 600; font-size: 21px; line-height: 1.22; color: var(--lilac); }
+.prompts:has([aria-pressed='true']) button[aria-pressed='false'] { opacity: 0.5; }
+.prompts button[aria-pressed='true'] { background: linear-gradient(135deg, #fff4d6 0%, #e9c877 60%, var(--gold) 100%); border-color: #f6dfa4; transform: scale(1.02); }
+.prompts button[aria-pressed='true'] span, .prompts button[aria-pressed='true'] b { color: var(--purple); }
+
+/* ---------- dark versions of the check-in and weather boxes ---------- */
+.tile.dark.checkin .prompt { color: var(--lilac); }
+.tile.dark.checkin .dial span { color: var(--soft); }
+.tile.dark.checkin .dial button[aria-pressed='true'] span { color: var(--gold); }
+.tile.dark.checkin .dial b { box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3); }
+.tile.dark .shift { background: var(--purple-2); color: var(--lilac); }
+.tile.dark textarea { background: var(--purple-2); border-color: rgba(211, 169, 85, 0.35); color: var(--lilac); }
+.tile.dark textarea::placeholder { color: var(--soft); }
+.tile.dark .btn.dark { background: var(--gold); color: var(--purple); }
+.tile.dark.weather .wx-home { color: var(--lilac); }
+.tile.dark.weather .wx-temp { color: var(--gold); }
+.tile.dark .wx-facts div { background: var(--purple-2); }
+.tile.dark .wx-facts span { color: var(--soft); }
+.tile.dark .place-card { background: var(--purple-2); }
+.tile.dark .place-card .energy { color: var(--gold); }
+.tile.dark .place-top b { color: var(--lilac); }
+.tile.dark .place-card .special { color: var(--purple); }
+.tile.dark .rating { color: var(--purple); }
+.tile.dark .rating.r-poor { color: var(--soft); }
