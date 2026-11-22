@@ -35,9 +35,14 @@ async function getJson(url, tries = 2) {
   }
 }
 
+const REGION = ((navigator.language || '').split('-')[1] || '').toUpperCase()
+
 export async function searchPlaces(query) {
-  const data = await getJson(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=6&language=en&format=json`)
-  return (data.results ?? []).map((r) => ({
+  const data = await getJson(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=10&language=en&format=json`)
+  const found = data.results ?? []
+  // Places in the person's own country come first; otherwise the service's order (roughly by size) is kept.
+  const ranked = [...found.filter((r) => r.country_code === REGION), ...found.filter((r) => r.country_code !== REGION)].slice(0, 6)
+  return ranked.map((r) => ({
     name: [r.name, r.admin1, r.country_code === 'US' ? null : r.country].filter(Boolean).join(', '),
     lat: r.latitude,
     lon: r.longitude,

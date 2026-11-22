@@ -238,3 +238,6 @@ textarea { resize: vertical; line-height: 1.6; }
 @keyframes wave { from { transform: scaleY(0.45); } to { transform: scaleY(1); } }
 .mantra-time { font-size: 12px; color: var(--soft); font-variant-numeric: tabular-nums; }
 input[type='file'] { padding: 10px; }
+.place-list { display: flex; flex-direction: column; border: 1px solid var(--lilac-2); border-radius: 16px; overflow: hidden; background: var(--white); }
+.place-list .place-result { border: 0; border-bottom: 1px solid var(--lilac); border-radius: 0; }
+.place-list .place-result:last-child { border-bottom: 0; }
