@@ -25,7 +25,7 @@ export default function StarField() {
       ctx.clearRect(0, 0, w, h)
       for (const s of stars) {
         ctx.globalAlpha = still ? 0.7 : 0.35 + 0.6 * Math.abs(Math.sin(s.p + frame * s.s))
-        ctx.fillStyle = s.gold ? '#F6DFA4' : '#FFFFFF'
+        ctx.fillStyle = s.gold ? '#FDEDCB' : '#FFFFFF'
         ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.3); ctx.fill()
       }
       if (shot) {

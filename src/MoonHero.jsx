@@ -17,16 +17,16 @@ export default function MoonHero({ elong, label }) {
     const major = i % 15 === 0
     const r1 = D - (major ? 5 : 2.5)
     const r2 = D + (major ? 5 : 2.5)
-    return <line key={i} x1={100 + r1 * Math.sin(t)} y1={100 - r1 * Math.cos(t)} x2={100 + r2 * Math.sin(t)} y2={100 - r2 * Math.cos(t)} stroke="#E3C17A" strokeWidth={major ? 1.4 : 0.7} opacity={major ? 0.9 : 0.45} />
+    return <line key={i} x1={100 + r1 * Math.sin(t)} y1={100 - r1 * Math.cos(t)} x2={100 + r2 * Math.sin(t)} y2={100 - r2 * Math.cos(t)} stroke="#EAC296" strokeWidth={major ? 1.4 : 0.7} opacity={major ? 0.9 : 0.45} />
   })
 
   return (
     <svg className="moon-hero" viewBox="0 0 200 200" role="img" aria-label={label}>
       <defs>
         <radialGradient id="mh-halo" cx="50%" cy="50%" r="50%">
-          <stop offset="48%" stopColor="#F6DFA4" stopOpacity="0.5" />
-          <stop offset="72%" stopColor="#E3C17A" stopOpacity="0.14" />
-          <stop offset="100%" stopColor="#E3C17A" stopOpacity="0" />
+          <stop offset="48%" stopColor="#FDEDCB" stopOpacity="0.5" />
+          <stop offset="72%" stopColor="#EAC296" stopOpacity="0.14" />
+          <stop offset="100%" stopColor="#EAC296" stopOpacity="0" />
         </radialGradient>
         <radialGradient id="mh-surface" cx="38%" cy="32%" r="78%">
           <stop offset="0%" stopColor="#FFF8E2" />
@@ -34,8 +34,8 @@ export default function MoonHero({ elong, label }) {
           <stop offset="100%" stopColor="#B88A3C" />
         </radialGradient>
         <radialGradient id="mh-dark" cx="40%" cy="35%" r="75%">
-          <stop offset="0%" stopColor="#3A3478" />
-          <stop offset="100%" stopColor="#17133F" />
+          <stop offset="0%" stopColor="#3B3867" />
+          <stop offset="100%" stopColor="#0A0E33" />
         </radialGradient>
         <filter id="mh-texture" x="0" y="0" width="100%" height="100%">
           <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="4" seed="11" />
@@ -56,10 +56,10 @@ export default function MoonHero({ elong, label }) {
       <circle className="mh-halo" cx="100" cy="100" r="100" fill="url(#mh-halo)" />
 
       {/* the cycle dial */}
-      <circle cx="100" cy="100" r={D} fill="none" stroke="#E3C17A" strokeWidth="0.6" opacity="0.35" />
+      <circle cx="100" cy="100" r={D} fill="none" stroke="#EAC296" strokeWidth="0.6" opacity="0.35" />
       {ticks}
-      <circle cx={mx} cy={my} r="9" fill="#E3C17A" opacity="0.25" />
-      <circle cx={mx} cy={my} r="4.5" fill="#FFE9B0" stroke="#E3C17A" strokeWidth="1.2" />
+      <circle cx={mx} cy={my} r="9" fill="#EAC296" opacity="0.25" />
+      <circle cx={mx} cy={my} r="4.5" fill="#FDEDCB" stroke="#EAC296" strokeWidth="1.2" />
 
       {/* the moon itself */}
       <g className="mh-moon">
@@ -75,7 +75,7 @@ export default function MoonHero({ elong, label }) {
             <circle cx="70" cy="112" r="3.5" fill="#FFF8E2" opacity="0.3" />
           </g>
         </g>
-        <circle cx="100" cy="100" r={R} fill="none" stroke="#FFE9B0" strokeWidth="0.6" opacity="0.5" />
+        <circle cx="100" cy="100" r={R} fill="none" stroke="#FDEDCB" strokeWidth="0.6" opacity="0.5" />
       </g>
     </svg>
   )

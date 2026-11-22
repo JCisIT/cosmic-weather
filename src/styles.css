@@ -1,14 +1,22 @@
-/* Cosmic Weather brand (Cosmos palette): deep indigo, lavender, warm gold, pale lavender. Cormorant Garamond headings over DM Sans. */
+/* Cosmic Weather brand (Cosmos palette): deep navy, dusk violet, warm gold, cream highlight. Cormorant Garamond headings over DM Sans. */
 :root {
-  --purple: #1F1B52;
-  --purple-2: #2E2A6E;
-  --gold: #E3C17A;
+  /* Brand palette: these five are the source of truth. */
+  --bg-primary: #0A0E33;
+  --bg-surface: #3B3867;
+  --accent-glow: #655488;
+  --accent-gold: #EAC296;
+  --text-highlight: #FDEDCB;
+
+  /* Working names used through the app, mapped onto the palette. */
+  --purple: var(--bg-primary);
+  --purple-2: var(--bg-surface);
+  --gold: var(--accent-gold);
+  --lavender: var(--accent-glow);
   --gold-ink: #7a5a14;
   --lilac: #EEEBFA;
   --lilac-2: #D7D0F2;
   --soft: #CEC7EC;
   --muted: #565081;
-  --lavender: #A99DDB;
   --white: #ffffff;
   --display: 'Cormorant Garamond', Georgia, serif;
   --body: 'DM Sans', system-ui, -apple-system, sans-serif;
@@ -137,14 +145,14 @@ textarea { resize: vertical; line-height: 1.6; }
 
 /* ---------- Today: sky panel ---------- */
 .sky-panel { position: relative; overflow: hidden; margin: calc(-24px - env(safe-area-inset-top, 0px)) -16px 0; padding: calc(34px + env(safe-area-inset-top, 0px)) 24px 26px; border-radius: 0 0 36px 36px; color: var(--lilac); display: flex; flex-direction: column; gap: 22px;
-  background: radial-gradient(120% 70% at 85% 0%, #3D3786 0%, rgba(61, 55, 134, 0) 60%), linear-gradient(180deg, #15123A 0%, var(--purple) 55%, #2B2668 100%); }
+  background: radial-gradient(120% 70% at 85% 0%, var(--accent-glow) 0%, rgba(101, 84, 136, 0) 60%), linear-gradient(180deg, #060924 0%, var(--bg-primary) 55%, #1A1D4A 100%); }
 .starfield { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .sky-panel > *:not(.starfield) { position: relative; }
 .sky-panel h1 { font-weight: 600; font-size: 40px; line-height: 1.02; margin-top: 6px; }
 .sky-moon { display: flex; align-items: center; gap: 20px; }
 .sky-moon > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .sky-moon h2 { font-weight: 600; font-size: 32px; line-height: 1; margin: 2px 0 4px; }
-.sky-moon svg { filter: drop-shadow(0 0 22px rgba(227, 193, 122, 0.45)); }
+.sky-moon svg { filter: drop-shadow(0 0 22px rgba(234, 194, 150, 0.45)); }
 .sky-fact { font-size: 14px; color: var(--soft); }
 .star-row { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; font-size: 14px; }
 .rating { font-weight: 700; font-size: 14px; padding: 7px 14px; border-radius: 16px; background: var(--gold); color: var(--purple); }
@@ -221,15 +229,15 @@ textarea { resize: vertical; line-height: 1.6; }
 .sky-caption { display: flex; flex-direction: column; align-items: center; gap: 4px; align-self: stretch; }
 .sky-caption h2 { font-weight: 600; font-size: 40px; line-height: 1; }
 .sky-facts { align-self: stretch; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
-.sky-facts div { background: rgba(238, 235, 250, 0.08); border: 1px solid rgba(227, 193, 122, 0.3); border-radius: 16px; padding: 10px 6px; display: flex; flex-direction: column; min-width: 0; }
+.sky-facts div { background: rgba(238, 235, 250, 0.08); border: 1px solid rgba(234, 194, 150, 0.3); border-radius: 16px; padding: 10px 6px; display: flex; flex-direction: column; min-width: 0; }
 .sky-facts b { font-family: var(--display); font-weight: 700; font-size: 22px; line-height: 1.15; color: var(--gold); }
 .sky-facts span { font-size: 12px; color: var(--soft); }
 .star-row { align-items: center; text-align: center; }
 
 /* ---------- musical mantra ---------- */
 .mantra { display: flex; align-items: center; gap: 16px; padding: 20px; border-radius: 28px; color: var(--lilac); border: 1px solid var(--gold);
-  background: linear-gradient(135deg, #2E2A6E 0%, var(--purple) 70%); }
-.mantra-play { flex: none; width: 64px; height: 64px; border-radius: 50%; border: 0; background: var(--gold); color: var(--purple); display: grid; place-items: center; cursor: pointer; box-shadow: 0 0 0 6px rgba(227, 193, 122, 0.18); }
+  background: linear-gradient(135deg, #3B3867 0%, var(--purple) 70%); }
+.mantra-play { flex: none; width: 64px; height: 64px; border-radius: 50%; border: 0; background: var(--gold); color: var(--purple); display: grid; place-items: center; cursor: pointer; box-shadow: 0 0 0 6px rgba(234, 194, 150, 0.18); }
 .mantra-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .mantra h3 { font-weight: 600; font-size: 26px; line-height: 1.05; }
 .mantra .soft { font-size: 13px; }
@@ -244,7 +252,7 @@ input[type='file'] { padding: 10px; }
 .place-list .place-result:last-child { border-bottom: 0; }
 
 /* ---------- opening insight ---------- */
-.opening { align-self: stretch; text-align: left; display: flex; flex-direction: column; gap: 8px; padding: 18px 20px; border-radius: 24px; background: rgba(21, 18, 58, 0.55); border: 1px solid rgba(227, 193, 122, 0.45); backdrop-filter: blur(3px); }
+.opening { align-self: stretch; text-align: left; display: flex; flex-direction: column; gap: 8px; padding: 18px 20px; border-radius: 24px; background: rgba(6, 9, 36, 0.55); border: 1px solid rgba(234, 194, 150, 0.45); backdrop-filter: blur(3px); }
 .opening h2 { font-style: italic; font-weight: 600; font-size: 31px; line-height: 1.08; }
 .opening .hook { font-weight: 700; color: var(--gold); font-size: 16px; }
 .opening .soft { font-size: 14px; }
@@ -256,7 +264,7 @@ html { scroll-behavior: smooth; }
 /* ---------- arrival tap and the before/after line ---------- */
 .arrive { align-self: stretch; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; font-size: 14px; color: var(--soft); text-align: left; }
 .arrive div { display: flex; gap: 6px; }
-.arrive button { width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(227, 193, 122, 0.5); background: rgba(238, 235, 250, 0.06); color: var(--lilac); font-family: var(--display); font-size: 20px; font-weight: 700; cursor: pointer; }
+.arrive button { width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(234, 194, 150, 0.5); background: rgba(238, 235, 250, 0.06); color: var(--lilac); font-family: var(--display); font-size: 20px; font-weight: 700; cursor: pointer; }
 .arrive button[aria-pressed='true'] { background: var(--gold); border-color: var(--gold); color: var(--purple); }
 .shift { background: var(--lilac); border-radius: 14px; padding: 12px 14px; font-weight: 500; }
 
@@ -315,10 +323,10 @@ html { scroll-behavior: smooth; }
 .dial { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 360px; margin: 6px auto 2px; }
 .dial button { background: none; border: 0; padding: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 8px; color: inherit; }
 .dial b { width: 100%; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; font-family: var(--display); font-weight: 700; font-size: 34px; line-height: 1; padding-bottom: 3px; color: var(--gold);
-  background: radial-gradient(circle at 35% 28%, #3D3786 0%, var(--purple) 70%); border: 1.5px solid var(--gold); box-shadow: 0 6px 16px rgba(31, 27, 82, 0.22); transition: transform 0.18s ease, box-shadow 0.18s ease; }
+  background: radial-gradient(circle at 35% 28%, #4A4579 0%, var(--purple) 70%); border: 1.5px solid var(--gold); box-shadow: 0 6px 16px rgba(10, 14, 51, 0.22); transition: transform 0.18s ease, box-shadow 0.18s ease; }
 .dial span { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
 .dial button:active b { transform: scale(0.94); }
-.dial button[aria-pressed='true'] b { color: var(--purple); border-color: #f6dfa4; background: radial-gradient(circle at 35% 28%, #fff4d6 0%, #EED39A 45%, var(--gold) 100%); box-shadow: 0 0 0 5px rgba(227, 193, 122, 0.28), 0 8px 22px rgba(227, 193, 122, 0.45); transform: scale(1.08); }
+.dial button[aria-pressed='true'] b { color: var(--purple); border-color: #FDEDCB; background: radial-gradient(circle at 35% 28%, #FFF6E2 0%, #F1D3AE 45%, var(--gold) 100%); box-shadow: 0 0 0 5px rgba(234, 194, 150, 0.28), 0 8px 22px rgba(234, 194, 150, 0.45); transform: scale(1.08); }
 @media (prefers-reduced-motion: reduce) { .dial b { transition: none; } }
 
 .arrive { flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; color: var(--lilac); margin: 6px 0 4px; }
@@ -344,9 +352,9 @@ html { scroll-behavior: smooth; }
 .bg-path { stroke: var(--lilac-2); stroke-width: 5; stroke-linecap: round; }
 .bg-path.mine { stroke: var(--gold); stroke-width: 6; }
 .bg-path.lent { stroke: var(--gold); stroke-width: 5; stroke-dasharray: 3 8; animation: march 1.6s linear infinite; }
-.bg-center { fill: var(--white); stroke: #A99DDB; stroke-width: 2; stroke-linejoin: round; }
+.bg-center { fill: var(--white); stroke: #9C8FC4; stroke-width: 2; stroke-linejoin: round; }
 .bg-center.mine { fill: var(--gold); stroke: var(--purple); }
-.bg-ring { fill: rgba(227, 193, 122, 0.16); stroke: var(--gold); stroke-width: 2; transform-origin: center; transform-box: fill-box; animation: ring 2.4s ease-in-out infinite; }
+.bg-ring { fill: rgba(234, 194, 150, 0.16); stroke: var(--gold); stroke-width: 2; transform-origin: center; transform-box: fill-box; animation: ring 2.4s ease-in-out infinite; }
 @keyframes ring { 0%, 100% { transform: scale(0.82); opacity: 0.55; } 50% { transform: scale(1.12); opacity: 1; } }
 @keyframes march { to { stroke-dashoffset: -22; } }
 @media (prefers-reduced-motion: reduce) { .bg-ring, .bg-path.lent { animation: none; } }
@@ -354,8 +362,8 @@ html { scroll-behavior: smooth; }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .legend i { width: 13px; height: 13px; border-radius: 4px; display: inline-block; }
 .k-mine { background: var(--gold); border: 1.5px solid var(--purple); }
-.k-open { background: var(--white); border: 1.5px solid #A99DDB; }
-.k-ring { border-radius: 50% !important; background: rgba(227, 193, 122, 0.25); border: 1.5px solid var(--gold); }
+.k-open { background: var(--white); border: 1.5px solid #9C8FC4; }
+.k-ring { border-radius: 50% !important; background: rgba(234, 194, 150, 0.25); border: 1.5px solid var(--gold); }
 .experiment { align-self: stretch; background: var(--purple); color: var(--lilac); border-radius: 20px; padding: 18px; display: flex; flex-direction: column; gap: 6px; }
 .experiment .eyebrow { color: var(--gold); }
 .experiment p { font-family: var(--display); font-style: italic; font-weight: 600; font-size: 22px; line-height: 1.25; }
@@ -363,11 +371,11 @@ html { scroll-behavior: smooth; }
 /* ---------- three prompts, choose one ---------- */
 .pick-one { margin-top: 10px; }
 .prompts { align-self: stretch; display: flex; flex-direction: column; gap: 10px; }
-.prompts button { text-align: left; padding: 16px 18px; border-radius: 20px; border: 1px solid rgba(227, 193, 122, 0.45); background: var(--purple-2); color: var(--lilac); cursor: pointer; display: flex; flex-direction: column; gap: 6px; transition: transform 0.15s ease, opacity 0.15s ease; }
+.prompts button { text-align: left; padding: 16px 18px; border-radius: 20px; border: 1px solid rgba(234, 194, 150, 0.45); background: var(--purple-2); color: var(--lilac); cursor: pointer; display: flex; flex-direction: column; gap: 6px; transition: transform 0.15s ease, opacity 0.15s ease; }
 .prompts span { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); }
 .prompts b { font-family: var(--display); font-style: italic; font-weight: 600; font-size: 21px; line-height: 1.22; color: var(--lilac); }
 .prompts:has([aria-pressed='true']) button[aria-pressed='false'] { opacity: 0.5; }
-.prompts button[aria-pressed='true'] { background: linear-gradient(135deg, #fff4d6 0%, #EED39A 60%, var(--gold) 100%); border-color: #f6dfa4; transform: scale(1.02); }
+.prompts button[aria-pressed='true'] { background: linear-gradient(135deg, #FFF6E2 0%, #F1D3AE 60%, var(--gold) 100%); border-color: #FDEDCB; transform: scale(1.02); }
 .prompts button[aria-pressed='true'] span, .prompts button[aria-pressed='true'] b { color: var(--purple); }
 
 /* ---------- dark versions of the check-in and weather boxes ---------- */
@@ -376,7 +384,7 @@ html { scroll-behavior: smooth; }
 .tile.dark.checkin .dial button[aria-pressed='true'] span { color: var(--gold); }
 .tile.dark.checkin .dial b { box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3); }
 .tile.dark .shift { background: var(--purple-2); color: var(--lilac); }
-.tile.dark textarea { background: var(--purple-2); border-color: rgba(227, 193, 122, 0.35); color: var(--lilac); }
+.tile.dark textarea { background: var(--purple-2); border-color: rgba(234, 194, 150, 0.35); color: var(--lilac); }
 .tile.dark textarea::placeholder { color: var(--soft); }
 .tile.dark .btn.dark { background: var(--gold); color: var(--purple); }
 .tile.dark.weather .wx-home { color: var(--lilac); }
@@ -390,3 +398,6 @@ html { scroll-behavior: smooth; }
 .tile.dark .rating { color: var(--purple); }
 .tile.dark .rating.r-poor { color: var(--soft); }
 .brand-mark { border-radius: 26%; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(169, 157, 219, 0.35); }
+
+/* Cream highlight for the big headlines on the dark sky. */
+.sky-panel h1, .opening h2, .arrive h2, .moon-strip h2, .login h1 { color: var(--text-highlight); }
