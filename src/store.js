@@ -57,6 +57,11 @@ export async function signInWithEmail(email) {
   return { sent: true }
 }
 
+export async function verifyEmailCode(email, code) {
+  const data = check(await supabase.auth.verifyOtp({ email, token: code, type: 'email' }))
+  return data.user
+}
+
 export async function signInWithGoogle() {
   if (demo) throw new Error('Google sign-in turns on once the app is connected to its database.')
   check(await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: here() } }))
