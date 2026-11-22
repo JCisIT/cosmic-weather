@@ -250,3 +250,4 @@ input[type='file'] { padding: 10px; }
 .opening .link.light { align-self: flex-start; font-weight: 700; text-decoration: underline; padding-top: 4px; }
 html { scroll-behavior: smooth; }
 #insight { scroll-margin-top: 16px; }
+.tabs button { display: grid; place-items: center; }

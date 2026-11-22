@@ -21,7 +21,7 @@ export const CENTER_THEME = {
 
 export const DEFINED_LINE = 'This center is defined in your chart, so it lands on home ground. Use it the way you always do, just with more light on it.'
 export const OPEN_LINE = 'This center is open in your chart, so you may feel it louder than usual. Notice it, and remember that not all of it is yours to act on.'
-export const UNKNOWN_LINE = 'Add your defined centers under My Design to see how this meets your chart.'
+export const UNKNOWN_LINE = 'Add your defined centers in Settings to see how this meets your chart.'
 
 export const TYPE_LINE = {
   Generator: 'Trust the first gut yes or no before your mind edits it.',

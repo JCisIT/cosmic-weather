@@ -133,7 +133,7 @@ export function buildInsight(s, chart, profile, date) {
         : `Your ${sun.center} center is open, meaning you take in other people's energy there. You may feel today's theme louder than usual, and not all of it is yours to act on.`
     )
   } else {
-    personal.push('Add your birth details under My Design and this section will speak to your own chart.')
+    personal.push('Add your birth details in Settings and this section will speak to your own chart.')
   }
   if (type && TYPE_STRATEGY[type]) personal.push(`As a ${type} (${TYPE_PLAIN[type]}): ${TYPE_STRATEGY[type]}`)
 

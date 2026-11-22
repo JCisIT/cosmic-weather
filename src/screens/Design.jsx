@@ -83,7 +83,7 @@ export default function Design({ user, profile, onSaved, onSignOut, first }) {
   return (
     <form className={first ? 'design first' : 'design'} onSubmit={submit}>
       <header className="page-head">
-        <span className="eyebrow">{first ? 'Welcome' : 'My Design'}</span>
+        <span className="eyebrow">{first ? 'Welcome' : 'Settings'}</span>
         <h1>{first ? 'Tell us about you' : 'Your details'}</h1>
       </header>
 
