@@ -123,3 +123,5 @@ textarea { resize: vertical; line-height: 1.6; }
 .switch { display: grid; grid-template-columns: 1fr 1fr; width: 100%; padding: 4px; border-radius: 26px; background: var(--purple-2); margin-bottom: 8px; }
 .switch button { min-height: 44px; border: 0; border-radius: 22px; background: transparent; color: var(--soft); font-weight: 700; cursor: pointer; }
 .switch button[aria-pressed='true'] { background: var(--gold); color: var(--purple); }
+.hint { border: 1px solid var(--gold); gap: 6px; }
+.hint .link { padding: 6px 0 0; align-self: flex-start; }

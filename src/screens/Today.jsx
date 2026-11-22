@@ -4,6 +4,7 @@ import { CENTER_THEME, DEFINED_LINE, OPEN_LINE, UNKNOWN_LINE, TYPE_LINE, FEELS, 
 import { PHASES } from '../sky.js'
 import { dayKey, listEntries, saveEntry, listTodos, addTodo, toggleTodo, getCheckin, saveCheckin } from '../store.js'
 import Moon from '../Moon.jsx'
+import InstallHint from '../InstallHint.jsx'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -72,6 +73,8 @@ export default function Today({ user, profile }) {
         </div>
         {tag && <span className="badge">{tag}</span>}
       </header>
+
+      <InstallHint />
 
       <section className="tile hero">
         <div className="hero-top">
