@@ -9,6 +9,7 @@ import MoonHero from '../MoonHero.jsx'
 import StarField from '../StarField.jsx'
 import MantraPlayer from '../MantraPlayer.jsx'
 import InstallHint from '../InstallHint.jsx'
+import Flourish from '../Flourish.jsx'
 import WeatherIcon from '../WeatherIcon.jsx'
 
 const FEELS = ['Low', 'Tender', 'Steady', 'Good', 'Bright']
@@ -125,10 +126,14 @@ export default function Today({ user, profile, onGo }) {
           <a className="link light" href="#insight">Read today's brief</a>
         </div>
         <div className="arrive">
-          <span>{arrive ? 'You arrived at' : 'How are you arriving today?'}</span>
-          <div role="group" aria-label="How you are arriving, from 1 to 5">
-            {[1, 2, 3, 4, 5].map((n) => (
-              <button key={n} type="button" aria-pressed={arrive === n} aria-label={`${n} of 5, ${FEELS[n - 1]}`} onClick={() => pick('arrive', n)}>{n}</button>
+          <Flourish />
+          <h2>{arrive ? 'You arrived at' : 'How are you arriving today?'}</h2>
+          <div className="dial" role="group" aria-label="How you are arriving, from 1 to 5">
+            {FEELS.map((label, i) => (
+              <button key={label} type="button" aria-pressed={arrive === i + 1} onClick={() => pick('arrive', i + 1)}>
+                <b>{i + 1}</b>
+                <span>{label}</span>
+              </button>
             ))}
           </div>
         </div>
@@ -178,10 +183,11 @@ export default function Today({ user, profile, onGo }) {
       </section>
 
       {/* 3. Daily check-in */}
-      <section className="tile">
+      <section className="tile checkin">
+        <Flourish />
         <span className="eyebrow">Daily check-in</span>
         <h3 className="prompt">{arrive ? 'Now that you have read today, how do you feel?' : 'How are you feeling today?'}</h3>
-        <div className="feels" role="group" aria-label="How you feel, from 1 to 5">
+        <div className="dial" role="group" aria-label="How you feel, from 1 to 5">
           {FEELS.map((label, i) => (
             <button key={label} type="button" aria-pressed={feel === i + 1} onClick={() => pick('feel', i + 1)}>
               <b>{i + 1}</b>
