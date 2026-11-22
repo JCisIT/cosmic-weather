@@ -1,7 +1,5 @@
 import { useState } from 'react'
 import { signInWithPassword, signUpWithPassword, signInWithEmail } from '../store.js'
-import Moon from '../Moon.jsx'
-import { sky } from '../sky.js'
 import { ios, phoneBrowser } from '../device.js'
 
 export default function Login({ onSignedIn }) {
@@ -11,7 +9,6 @@ export default function Login({ onSignedIn }) {
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
   const [showForm, setShowForm] = useState(!phoneBrowser)
-  const s = sky()
 
   const run = async (fn) => {
     setBusy(true)
@@ -47,7 +44,7 @@ export default function Login({ onSignedIn }) {
 
   return (
     <div className="login">
-      <Moon elong={s.elong} size={showForm ? 120 : 64} />
+      <img className="brand-mark" src="./icon.svg" alt="" width={showForm ? 112 : 72} height={showForm ? 112 : 72} />
       <span className="eyebrow gold">Joyful Purpose Coaching</span>
       <h1>Cosmic Weather</h1>
       <span className="by">by Astra Fox</span>
