@@ -1,6 +1,9 @@
 // One data layer with two backends: Supabase when keys are set, this browser's storage otherwise (demo mode).
 import { createClient } from '@supabase/supabase-js'
 
+// True when this page load came from an emailed sign-in link. Read before the client clears the address.
+export const cameFromEmailLink = /type=(magiclink|recovery|signup|email)/.test(window.location.hash)
+
 const url = import.meta.env.VITE_SUPABASE_URL
 const key = import.meta.env.VITE_SUPABASE_ANON_KEY
 export const supabase = url && key ? createClient(url, key) : null

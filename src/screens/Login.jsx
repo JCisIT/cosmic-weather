@@ -41,7 +41,7 @@ export default function Login({ onSignedIn }) {
     run(async () => {
       const res = await signInWithEmail(email.trim())
       if (res.user) onSignedIn(res.user)
-      else setNote(`Sign-in link sent to ${email.trim()}. Open it in this same browser.`)
+      else setNote(`Link sent to ${email.trim()}. Tap it, choose a password on the page that opens, then come back here and sign in.`)
     })
   }
 
@@ -87,7 +87,7 @@ export default function Login({ onSignedIn }) {
           </form>
           {mode === 'in' && (
             <button type="button" className="link" disabled={busy} onClick={link}>
-              No password yet? Email me a sign-in link
+              Forgot or never set a password? Email me a link
             </button>
           )}
         </>

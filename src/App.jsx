@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { getUser, onAuthChange, getProfile, signOut, demo } from './store.js'
+import { getUser, onAuthChange, getProfile, signOut, demo, cameFromEmailLink } from './store.js'
+import ChoosePassword from './screens/ChoosePassword.jsx'
 import Login from './screens/Login.jsx'
 import Design from './screens/Design.jsx'
 import Today from './screens/Today.jsx'
@@ -13,6 +14,7 @@ export default function App() {
   const [user, setUser] = useState(undefined) // undefined = still checking
   const [profile, setProfile] = useState(undefined)
   const [tab, setTab] = useState('Today')
+  const [askPassword, setAskPassword] = useState(cameFromEmailLink)
 
   useEffect(() => {
     getUser().then(setUser)
@@ -28,6 +30,7 @@ export default function App() {
 
   if (user === undefined) return <div className="splash">Reading the sky</div>
   if (!user) return <Login onSignedIn={setUser} />
+  if (askPassword) return <ChoosePassword email={user.email} onDone={() => setAskPassword(false)} />
   if (profile === undefined) return <div className="splash">Reading the sky</div>
 
   const leave = async () => {
