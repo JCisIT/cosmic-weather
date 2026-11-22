@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { saveProfile } from '../store.js'
+import { saveProfile, setPassword } from '../store.js'
 import { TYPES, PROFILES, AUTHORITIES, CENTERS } from '../content.js'
 
 export const blankDesign = (p) => ({
@@ -106,11 +106,40 @@ export default function Design({ user, profile, onSaved, onSignOut, first }) {
         <button type="submit" className="btn dark">{first ? 'See my weather' : 'Save'}</button>
         <span className="muted" role="status">{note}</span>
       </div>
+      {onSignOut && <PasswordTile />}
       {onSignOut && (
         <button type="button" className="link" onClick={onSignOut}>
           Sign out{user.email ? ` (${user.email})` : ''}
         </button>
       )}
     </form>
+  )
+}
+
+// Lets someone who signed in by email link set a password, so they can sign in anywhere (including the home-screen app).
+function PasswordTile() {
+  const [pw, setPw] = useState('')
+  const [note, setNote] = useState('')
+  const save = async () => {
+    if (pw.length < 8) return setNote('Use at least 8 characters.')
+    try {
+      await setPassword(pw)
+      setPw('')
+      setNote('Password saved')
+    } catch (e) {
+      setNote(e.message || 'Could not save.')
+    }
+  }
+  return (
+    <div className="tile">
+      <h2>Password</h2>
+      <p className="muted">Set or change the password you sign in with.</p>
+      <label htmlFor="new-password">New password</label>
+      <input id="new-password" type="password" autoComplete="new-password" placeholder="At least 8 characters" value={pw} onChange={(e) => { setPw(e.target.value); setNote('') }} />
+      <div className="row">
+        <button type="button" className="btn dark" onClick={save}>Save password</button>
+        <span className="muted" role="status">{note}</span>
+      </div>
+    </div>
   )
 }

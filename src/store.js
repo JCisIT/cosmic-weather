@@ -57,9 +57,27 @@ export async function signInWithEmail(email) {
   return { sent: true }
 }
 
-export async function verifyEmailCode(email, code) {
-  const data = check(await supabase.auth.verifyOtp({ email, token: code, type: 'email' }))
-  return data.user
+export async function signInWithPassword(email, password) {
+  if (demo) {
+    const user = { id: 'demo', email }
+    local.set('user', user)
+    return user
+  }
+  return check(await supabase.auth.signInWithPassword({ email, password })).user
+}
+
+// Returns { user } when signed in straight away, or { confirm: true } when they must tap an emailed link first.
+export async function signUpWithPassword(email, password) {
+  if (demo) return { user: await signInWithPassword(email, password) }
+  const data = check(await supabase.auth.signUp({ email, password, options: { emailRedirectTo: here() } }))
+  // Supabase hides whether an address is already registered by returning a user with no identities.
+  if (data.user && data.user.identities?.length === 0) throw new Error('That email already has an account. Sign in instead.')
+  return data.session ? { user: data.user } : { confirm: true }
+}
+
+export async function setPassword(password) {
+  if (demo) return
+  check(await supabase.auth.updateUser({ password }))
 }
 
 export async function signInWithGoogle() {

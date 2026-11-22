@@ -1,14 +1,14 @@
 import { useState } from 'react'
-import { signInWithEmail, signInWithGoogle, verifyEmailCode, demo } from '../store.js'
+import { signInWithPassword, signUpWithPassword, signInWithEmail } from '../store.js'
 import Moon from '../Moon.jsx'
 import { sky } from '../sky.js'
 
 export default function Login({ onSignedIn }) {
+  const [mode, setMode] = useState('in') // 'in' = sign in, 'new' = create account
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
-  const [sentTo, setSentTo] = useState('')
-  const [code, setCode] = useState('')
   const s = sky()
 
   const run = async (fn) => {
@@ -22,18 +22,25 @@ export default function Login({ onSignedIn }) {
     setBusy(false)
   }
 
-  const email_ = (e) => {
+  const submit = (e) => {
     e.preventDefault()
     run(async () => {
-      const res = await signInWithEmail(email.trim())
-      if (res.user) onSignedIn(res.user)
-      else setSentTo(email.trim())
+      const addr = email.trim()
+      if (mode === 'in') return onSignedIn(await signInWithPassword(addr, password))
+      const res = await signUpWithPassword(addr, password)
+      if (res.user) return onSignedIn(res.user)
+      setMode('in')
+      setNote(`Almost there. Tap the link we sent to ${addr}, then come back here and sign in.`)
     })
   }
 
-  const verify = (e) => {
-    e.preventDefault()
-    run(async () => onSignedIn(await verifyEmailCode(sentTo, code.trim())))
+  const link = () => {
+    if (!email.trim()) return setNote('Enter your email first.')
+    run(async () => {
+      const res = await signInWithEmail(email.trim())
+      if (res.user) onSignedIn(res.user)
+      else setNote(`Sign-in link sent to ${email.trim()}. Open it in this same browser.`)
+    })
   }
 
   return (
@@ -44,28 +51,24 @@ export default function Login({ onSignedIn }) {
       <span className="by">by Astra Fox</span>
       <p className="lede">Your daily sky, read through your Human Design.</p>
 
-      {sentTo ? (
-        <form onSubmit={verify}>
-          <p className="sent">We emailed a code to {sentTo}. Enter it here.</p>
-          <label htmlFor="code">Sign-in code</label>
-          <input id="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6,8}" required placeholder="123456" value={code} onChange={(e) => setCode(e.target.value)} />
-          <button type="submit" className="btn gold" disabled={busy}>Sign in</button>
-          <button type="button" className="link" onClick={() => { setSentTo(''); setCode(''); setNote('') }}>Use a different email</button>
-        </form>
-      ) : (
-        <>
-          <button type="button" className="btn light" disabled={busy} onClick={() => run(signInWithGoogle)}>
-            Continue with Google
-          </button>
-          <div className="or">or</div>
-          <form onSubmit={email_}>
-            <label htmlFor="email">Email</label>
-            <input id="email" type="email" required autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-            <button type="submit" className="btn gold" disabled={busy}>
-              {demo ? 'Enter' : 'Email me a sign-in code'}
-            </button>
-          </form>
-        </>
+      <div className="switch" role="group" aria-label="Sign in or create an account">
+        <button type="button" aria-pressed={mode === 'in'} onClick={() => { setMode('in'); setNote('') }}>Sign in</button>
+        <button type="button" aria-pressed={mode === 'new'} onClick={() => { setMode('new'); setNote('') }}>Create account</button>
+      </div>
+
+      <form onSubmit={submit}>
+        <label htmlFor="email">Email</label>
+        <input id="email" type="email" required autoComplete="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <label htmlFor="password">{mode === 'new' ? 'Choose a password' : 'Password'}</label>
+        <input id="password" type="password" required minLength={8} autoComplete={mode === 'new' ? 'new-password' : 'current-password'} placeholder="At least 8 characters" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <button type="submit" className="btn gold" disabled={busy}>
+          {mode === 'new' ? 'Create my account' : 'Sign in'}
+        </button>
+      </form>
+      {mode === 'in' && (
+        <button type="button" className="link" disabled={busy} onClick={link}>
+          No password yet? Email me a sign-in link
+        </button>
       )}
       <p className="note" role="status">{note}</p>
     </div>
