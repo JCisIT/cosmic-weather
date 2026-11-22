@@ -149,6 +149,18 @@ export async function addSession(admin, clientId, { session_date, title, recap, 
   return saved
 }
 
+/* ---------- Astra's daily note ---------- */
+export async function getDailyNote(date) {
+  if (demo) return local.get('daily-notes', {})[date] ?? null
+  return check(await supabase.from('daily_notes').select('note, lesson_slug').eq('note_date', date).maybeSingle())
+}
+
+export async function saveDailyNote(admin, date, note, lessonSlug) {
+  const row = { note_date: date, note: note || null, lesson_slug: lessonSlug || null, updated_by: admin.id, updated_at: new Date().toISOString() }
+  if (demo) return local.set('daily-notes', { ...local.get('daily-notes', {}), [date]: row })
+  check(await supabase.from('daily_notes').upsert(row))
+}
+
 /* ---------- musical mantra ---------- */
 // A private, one-hour link to a client's recording. Returns null when there is none.
 export async function mantraUrl(path) {

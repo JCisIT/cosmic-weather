@@ -139,3 +139,15 @@ alter table profiles add column if not exists birth_lat double precision;
 alter table profiles add column if not exists birth_lon double precision;
 grant insert (birth_lat, birth_lon) on profiles to authenticated;
 grant update (birth_lat, birth_lon) on profiles to authenticated;
+
+-- Astra's optional note for a day, shown to everyone in the Human Design card (seventh migration).
+create table if not exists daily_notes (
+  note_date date primary key,
+  note text,
+  lesson_slug text,
+  updated_by uuid references auth.users,
+  updated_at timestamptz not null default now()
+);
+alter table daily_notes enable row level security;
+create policy "members read daily notes" on daily_notes for select to authenticated using (true);
+create policy "admins write daily notes" on daily_notes for all to authenticated using (public.is_admin()) with check (public.is_admin());

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { listClients, saveClientDesign, listSessions, addSession, uploadMantra, dayKey } from '../store.js'
+import { listClients, saveClientDesign, listSessions, addSession, uploadMantra, dayKey, getDailyNote, saveDailyNote } from '../store.js'
+import { LESSONS } from '../concepts/content.js'
 import { DesignFields, blankDesign } from './Design.jsx'
 import { longDate } from './Sessions.jsx'
 
@@ -20,6 +21,7 @@ export default function Studio({ user }) {
         <h1>Your people</h1>
         <p className="muted">Everyone who has signed in. Tap a name to add their design or a session recap.</p>
       </header>
+      <DailyNote user={user} />
       {clients === null && <p className="muted">Loading</p>}
       {clients?.length === 0 && <div className="tile"><p>Nobody has signed in yet.</p></div>}
       {clients?.length > 0 && (
@@ -157,6 +159,49 @@ function MantraUpload({ client }) {
       <div className="row">
         <button type="submit" className="btn dark" disabled={busy}>Upload mantra</button>
         <span className="muted" role="status">{note}</span>
+      </div>
+    </form>
+  )
+}
+
+// Astra's note for a day. It appears at the top of everyone's "deeper transit", above the automatic copy.
+function DailyNote({ user }) {
+  const [date, setDate] = useState(dayKey())
+  const [note, setNote] = useState('')
+  const [lesson, setLesson] = useState('')
+  const [status, setStatus] = useState('')
+
+  useEffect(() => {
+    setStatus('')
+    getDailyNote(date).then((n) => { setNote(n?.note ?? ''); setLesson(n?.lesson_slug ?? '') }).catch(() => {})
+  }, [date])
+
+  const save = async (e) => {
+    e.preventDefault()
+    try {
+      await saveDailyNote(user, date, note.trim(), lesson)
+      setStatus('Saved. Everyone sees it on that day.')
+    } catch (err) {
+      setStatus(err.message || 'Could not save.')
+    }
+  }
+
+  return (
+    <form className="tile" onSubmit={save}>
+      <h2>Your note for the day</h2>
+      <p className="muted">Optional. It shows at the top of everyone's deeper transit. Leave it empty and the app writes the day for you.</p>
+      <label htmlFor="dn-date">Day</label>
+      <input id="dn-date" type="date" required value={date} onChange={(e) => setDate(e.target.value)} />
+      <label htmlFor="dn-note">Note</label>
+      <textarea id="dn-note" rows="4" placeholder="What do you want people to carry today?" value={note} onChange={(e) => setNote(e.target.value)} />
+      <label htmlFor="dn-lesson">Lesson for the day</label>
+      <select id="dn-lesson" value={lesson} onChange={(e) => setLesson(e.target.value)}>
+        <option value="">Rotate automatically</option>
+        {LESSONS.map((l) => <option key={l.slug} value={l.slug}>{l.topic}</option>)}
+      </select>
+      <div className="row">
+        <button type="submit" className="btn dark">Save note</button>
+        <span className="muted" role="status">{status}</span>
       </div>
     </form>
   )

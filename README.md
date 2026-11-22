@@ -42,6 +42,23 @@ With no Supabase keys it runs in **demo mode**: any email signs in and everythin
 | `src/styles.css` | Brand colors and layout |
 | `supabase/schema.sql` | Database tables and privacy rules |
 
+## Concepts (the tappable gates, lines, centers and lessons)
+
+Every pill and tile in the Human Design card opens a slide-over drawer at its own link:
+
+| Link | Shows |
+|---|---|
+| `#/concepts/gates/14` | A gate (1 to 64) |
+| `#/concepts/lines/6` | A line (1 to 6) |
+| `#/concepts/centers/solar-plexus` | One of the nine centers |
+| `#/concepts/channels/2-14` | A channel |
+| `#/concepts/centers` (or any lesson slug) | A lesson |
+
+- `src/concepts/content.js`: all the writing (line invitations, center notes, the 14 lessons). Replace or extend this to plug in markdown or a CMS later.
+- `src/concepts/resolve.js`: turns a link into what the drawer shows. The only place screens ask for concept content.
+- `src/copy/transitCopy.js`: the daily briefing voice, built as text plus tappable pills.
+- Astra can add a note for any day, and pick that day's lesson, from the Studio. It is stored in the `daily_notes` table.
+
 ## Not built yet
 
 Named incarnation crosses (the app shows the angle and four gates), a content library Astra can edit herself, calendar sync, payments, App Store build.

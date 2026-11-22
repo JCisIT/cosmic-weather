@@ -7,6 +7,8 @@ import Today from './screens/Today.jsx'
 import Journal from './screens/Journal.jsx'
 import Sessions from './screens/Sessions.jsx'
 import Studio from './screens/Studio.jsx'
+import ConceptDrawer from './concepts/ConceptDrawer.jsx'
+import { chartFor } from './chart/useChart.js'
 
 const TABS = ['Today', 'Sessions', 'Journal']
 const SETTINGS = 'My Design' // the settings page, opened from the cog at the right of the menu
@@ -66,6 +68,7 @@ export default function App() {
           </button>
         ))}
       </nav>
+      <ConceptDrawer chart={chartFor(profile)} />
     </div>
   )
 }

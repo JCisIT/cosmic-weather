@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { sky, PHASES } from '../sky.js'
 import { BOOKING_URL, SAMPLE_MANTRA, promptFor } from '../content.js'
-import { dayKey, listEntries, saveEntry, listCheckins, saveCheckin, mantraUrl } from '../store.js'
+import { dayKey, listEntries, saveEntry, listCheckins, saveCheckin, mantraUrl, getDailyNote } from '../store.js'
 import { getWeatherAll, stargazing, localTime, distance, duration, UNITS } from '../weather.js'
 import { buildInsight, placeEnergy, threePrompts, CENTER_PLAIN, TYPE_PLAIN, AUTHORITY_PLAIN, PROFILE_LINE } from '../insight.js'
 import { useChart } from '../chart/useChart.js'
@@ -11,6 +11,8 @@ import MantraPlayer from '../MantraPlayer.jsx'
 import InstallHint from '../InstallHint.jsx'
 import Flourish from '../Flourish.jsx'
 import Bodygraph from '../Bodygraph.jsx'
+import HumanDesignCard from '../HumanDesignCard.jsx'
+import { lessonFor } from '../concepts/content.js'
 import WeatherIcon from '../WeatherIcon.jsx'
 
 const FEELS = ['Low', 'Tender', 'Steady', 'Good', 'Bright']
@@ -38,6 +40,11 @@ export default function Today({ user, profile, onGo }) {
   const [answer, setAnswer] = useState('')
   const [saved, setSaved] = useState('')
   const [mantraSrc, setMantraSrc] = useState(null)
+  const [dailyNote, setDailyNote] = useState(null)
+
+  useEffect(() => {
+    getDailyNote(today).then(setDailyNote).catch(() => {})
+  }, [today])
 
   useEffect(() => {
     mantraUrl(profile.mantra_path).then(setMantraSrc)
@@ -52,6 +59,14 @@ export default function Today({ user, profile, onGo }) {
     return born && !near(born, profile.home_place) && !chosen.some((p) => near(born, p)) ? [...chosen, born] : chosen
   }, [profile])
   const type = chart?.type ?? profile.hd_type
+
+  // Everything the Human Design card shows, from the sky maths and Astra's optional note for today.
+  const brief = useMemo(() => ({
+    sunTransit: s.sunGate,
+    earthTransit: s.earthGate,
+    astraNote: dailyNote?.note ?? null,
+    dailyLesson: lessonFor(now, dailyNote?.lesson_slug),
+  }), [s, now, dailyNote])
 
   useEffect(() => {
     if (!homePlace) return
@@ -116,12 +131,8 @@ export default function Today({ user, profile, onGo }) {
           <h1>{greeting(now.getHours())}, {profile.name}.</h1>
         </div>
         <div className="opening">
-          <span className="eyebrow gold">Today's energy</span>
+          <span className="eyebrow gold">Today's energy · Sun in Gate {insight.sun.gate}.{insight.sun.line}</span>
           <h2>{insight.theme}</h2>
-          <div className="gates">
-            <div className="gate gold"><span>Sun</span><b>Gate {insight.sun.gate}.{insight.sun.line}</b><span>{insight.sun.name}</span></div>
-            <div className="gate lilac"><span>Earth</span><b>Gate {insight.earth.gate}.{insight.earth.line}</b><span>{insight.earth.name}</span></div>
-          </div>
           <p className="hook">{insight.hook}</p>
           {insight.strategy && <p className="soft">For you, a {insight.type}: {insight.strategy}</p>}
           <a className="link light" href="#insight">Read today's brief</a>
@@ -166,22 +177,8 @@ export default function Today({ user, profile, onGo }) {
 
       <InstallHint />
 
-      {/* 2. Human Design brief */}
-      <section className="tile dark insight" id="insight">
-        <span className="eyebrow">Human Design today</span>
-        <h3 className="prompt">{insight.sun.name}</h3>
-        <p>
-          The Sun is passing through <b>Gate {insight.sun.gate}</b> (a gate is one of 64 themes on the Human Design wheel): {insight.sun.plain}. It is in <b>line {insight.sun.line}</b> (each gate has six lines, which flavor it): {insight.sun.lineTheme}.
-        </p>
-        {insight.personal.map((p) => <p key={p}>{p}</p>)}
-        <p>
-          The Earth sits opposite the Sun and shows what keeps the day grounded: <b>Gate {insight.earth.gate}</b>, {insight.earth.plain}.
-        </p>
-        <div className="lesson">
-          <span className="eyebrow">Today's small lesson: {insight.lesson.title}</span>
-          <p>{insight.lesson.body}</p>
-        </div>
-      </section>
+      {/* 2. Human Design today: Nested Focus */}
+      <HumanDesignCard brief={brief} chart={chart} type={type} onSetup={() => onGo('My Design')} />
 
       {/* 3. Their design, lit up by today's sky */}
       <section className="tile lit">
