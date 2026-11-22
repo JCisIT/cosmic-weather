@@ -118,3 +118,4 @@ textarea { resize: vertical; line-height: 1.6; }
 .person:last-child { border-bottom: 0; }
 .person b { font-family: var(--display); font-size: 22px; line-height: 1.1; }
 .link.back { padding: 0 0 4px; }
+.login .by { font-family: var(--display); font-style: italic; font-size: 26px; color: var(--gold); margin-top: -6px; }

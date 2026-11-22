@@ -34,6 +34,7 @@ export default function Login({ onSignedIn }) {
       <Moon elong={s.elong} size={120} />
       <span className="eyebrow gold">Joyful Purpose Coaching</span>
       <h1>Cosmic Weather</h1>
+      <span className="by">by Astra Fox</span>
       <p className="lede">Your daily sky, read through your Human Design.</p>
 
       <button type="button" className="btn light" disabled={busy} onClick={() => run(signInWithGoogle)}>
