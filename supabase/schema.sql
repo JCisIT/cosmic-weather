@@ -88,3 +88,44 @@ create policy "admin adds todos" on todos for insert with check (public.is_admin
 
 -- To make someone an admin after they have signed in once:
 --   update profiles set role = 'admin' where email = 'their@email.com';
+
+-- Places and birth time zone (third migration).
+alter table profiles add column if not exists birth_tz text;
+alter table profiles add column if not exists home_place jsonb;
+alter table profiles add column if not exists places jsonb not null default '[]'::jsonb;
+grant insert (birth_tz, home_place, places) on profiles to authenticated;
+grant update (birth_tz, home_place, places) on profiles to authenticated;
+alter table checkins add column if not exists updated_at timestamptz not null default now();
+
+-- Musical mantras (fourth migration). Recordings live in a private bucket at <client id>/<file>.
+alter table profiles add column if not exists mantra_path text;
+alter table profiles add column if not exists mantra_title text;
+grant update (mantra_path, mantra_title) on profiles to authenticated;
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('mantras', 'mantras', false, 26214400, array['audio/mpeg','audio/mp4','audio/x-m4a','audio/aac','audio/wav','audio/x-wav','audio/ogg','audio/webm'])
+on conflict (id) do nothing;
+
+create policy "client reads own mantra" on storage.objects for select to authenticated
+  using (bucket_id = 'mantras' and (storage.foldername(name))[1] = auth.uid()::text);
+create policy "admin reads mantras" on storage.objects for select to authenticated
+  using (bucket_id = 'mantras' and public.is_admin());
+create policy "admin adds mantras" on storage.objects for insert to authenticated
+  with check (bucket_id = 'mantras' and public.is_admin());
+create policy "admin replaces mantras" on storage.objects for update to authenticated
+  using (bucket_id = 'mantras' and public.is_admin()) with check (bucket_id = 'mantras' and public.is_admin());
+create policy "admin removes mantras" on storage.objects for delete to authenticated
+  using (bucket_id = 'mantras' and public.is_admin());
+
+-- Only an admin may change which recording a profile points to.
+create or replace function public.guard_mantra() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if (new.mantra_path is distinct from old.mantra_path or new.mantra_title is distinct from old.mantra_title) and not public.is_admin() then
+    new.mantra_path := old.mantra_path;
+    new.mantra_title := old.mantra_title;
+  end if;
+  return new;
+end $$;
+drop trigger if exists guard_mantra on profiles;
+create trigger guard_mantra before update on profiles for each row execute function public.guard_mantra();

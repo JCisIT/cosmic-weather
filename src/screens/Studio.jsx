@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { listClients, saveClientDesign, listSessions, addSession, dayKey } from '../store.js'
+import { listClients, saveClientDesign, listSessions, addSession, uploadMantra, dayKey } from '../store.js'
 import { DesignFields, blankDesign } from './Design.jsx'
 import { longDate } from './Sessions.jsx'
 
@@ -90,6 +90,8 @@ function Client({ admin, client, onBack }) {
         </div>
       </div>
 
+      <MantraUpload client={client} />
+
       <form className="tile" onSubmit={send}>
         <h2>Add a session recap</h2>
         <div className="pair">
@@ -120,5 +122,42 @@ function Client({ admin, client, onBack }) {
         </article>
       ))}
     </>
+  )
+}
+
+// Upload the musical mantra Astra recorded for this person. It appears at the top of their Today page.
+function MantraUpload({ client }) {
+  const [title, setTitle] = useState(client.mantra_title ?? '')
+  const [file, setFile] = useState(null)
+  const [note, setNote] = useState(client.mantra_path ? 'A recording is already in place. Uploading replaces it.' : '')
+  const [busy, setBusy] = useState(false)
+
+  const upload = async (e) => {
+    e.preventDefault()
+    if (!file) return setNote('Choose an audio file first.')
+    setBusy(true)
+    setNote('Uploading')
+    try {
+      await uploadMantra(client.id, file, title.trim() || 'Your mantra')
+      setNote(`Sent. It now plays at the top of ${client.name || 'their'} Today page.`)
+    } catch (err) {
+      setNote(err.message || 'Could not upload.')
+    }
+    setBusy(false)
+  }
+
+  return (
+    <form className="tile" onSubmit={upload}>
+      <h2>Musical mantra</h2>
+      <p className="muted">Upload the recording you made for them (mp3, m4a or wav, up to 25 MB).</p>
+      <label htmlFor="m-title">Title</label>
+      <input id="m-title" placeholder="Name of their mantra" value={title} onChange={(e) => setTitle(e.target.value)} />
+      <label htmlFor="m-file">Recording</label>
+      <input id="m-file" type="file" accept="audio/*" onChange={(e) => setFile(e.target.files[0] ?? null)} />
+      <div className="row">
+        <button type="submit" className="btn dark" disabled={busy}>Upload mantra</button>
+        <span className="muted" role="status">{note}</span>
+      </div>
+    </form>
   )
 }

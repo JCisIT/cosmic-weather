@@ -149,6 +149,22 @@ export async function addSession(admin, clientId, { session_date, title, recap, 
   return saved
 }
 
+/* ---------- musical mantra ---------- */
+// A private, one-hour link to a client's recording. Returns null when there is none.
+export async function mantraUrl(path) {
+  if (demo || !path) return null
+  const { data, error } = await supabase.storage.from('mantras').createSignedUrl(path, 3600)
+  return error ? null : data.signedUrl
+}
+
+export async function uploadMantra(clientId, file, title) {
+  if (demo) throw new Error('Uploading needs the live app.')
+  const ext = (file.name.split('.').pop() || 'mp3').toLowerCase()
+  const path = `${clientId}/mantra-${Date.now()}.${ext}`
+  check(await supabase.storage.from('mantras').upload(path, file, { contentType: file.type || 'audio/mpeg' }))
+  return check(await supabase.from('profiles').update({ mantra_path: path, mantra_title: title }).eq('id', clientId).select().single())
+}
+
 /* ---------- journal ---------- */
 export async function listEntries(user) {
   if (demo) return local.get('entries', [])

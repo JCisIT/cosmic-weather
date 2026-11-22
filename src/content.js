@@ -45,6 +45,9 @@ export const PROMPTS = [
 
 export const FEELS = ['Clear', 'Breezy', 'Foggy', 'Stormy', 'Still']
 
+// Shown on the mantra card until Astra uploads a client's own recording. One of her song titles, as a stand-in.
+export const SAMPLE_MANTRA_TITLE = 'My Own Medicine'
+
 export const BOOKING_URL = 'https://www.joyfulpurposecoaching.com/'
 
 export function promptFor(phaseIndex, date) {

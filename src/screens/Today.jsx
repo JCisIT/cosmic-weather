@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { sky, PHASES } from '../sky.js'
-import { BOOKING_URL, promptFor } from '../content.js'
-import { dayKey, listEntries, saveEntry, listTodos, addTodo, toggleTodo, listCheckins, saveCheckin } from '../store.js'
+import { BOOKING_URL, SAMPLE_MANTRA_TITLE, promptFor } from '../content.js'
+import { dayKey, listEntries, saveEntry, listTodos, addTodo, toggleTodo, listCheckins, saveCheckin, mantraUrl } from '../store.js'
 import { getWeather, stargazing, UNITS } from '../weather.js'
 import { buildInsight, CENTER_PLAIN, TYPE_PLAIN, AUTHORITY_PLAIN, PROFILE_LINE } from '../insight.js'
 import { useChart } from '../chart/useChart.js'
-import Moon from '../Moon.jsx'
+import MoonHero from '../MoonHero.jsx'
+import StarField from '../StarField.jsx'
+import MantraPlayer from '../MantraPlayer.jsx'
 import InstallHint from '../InstallHint.jsx'
 import WeatherIcon from '../WeatherIcon.jsx'
 
@@ -35,6 +37,11 @@ export default function Today({ user, profile, onGo }) {
   const [saved, setSaved] = useState('')
   const [todos, setTodos] = useState([])
   const [newTodo, setNewTodo] = useState('')
+  const [mantraSrc, setMantraSrc] = useState(null)
+
+  useEffect(() => {
+    mantraUrl(profile.mantra_path).then(setMantraSrc)
+  }, [profile.mantra_path])
 
   const homePlace = profile.home_place
   const places = profile.places ?? []
@@ -99,20 +106,19 @@ export default function Today({ user, profile, onGo }) {
     <>
       {/* 1. Greeting and tonight's sky */}
       <section className="sky-panel">
-        <div className="stars" aria-hidden="true" />
+        <StarField />
         <div className="sky-top">
-          <div>
-            <span className="eyebrow gold">{now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</span>
-            <h1>{greeting(now.getHours())}, {profile.name}.</h1>
-          </div>
+          <span className="eyebrow gold">{now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+          <h1>{greeting(now.getHours())}, {profile.name}.</h1>
         </div>
-        <div className="sky-moon">
-          <Moon elong={s.elong} size={132} label={`${s.phase.name}, ${s.illum} percent lit`} />
-          <div>
-            <span className="eyebrow gold">Tonight's sky</span>
-            <h2>{s.phase.name}</h2>
-            <span className="sky-fact">{s.illum}% lit · Moon in {s.moonSign}</span>
-            <span className="sky-fact">{s.next.what} {s.next.days === 0 ? 'tonight' : `in ${s.next.label}`}</span>
+        <MoonHero elong={s.elong} label={`${s.phase.name}, ${s.illum} percent lit`} />
+        <div className="sky-caption">
+          <span className="eyebrow gold">Tonight's sky</span>
+          <h2>{s.phase.name}</h2>
+          <div className="sky-facts">
+            <div><b>{s.illum}%</b><span>lit</span></div>
+            <div><b>{s.moonSign}</b><span>moon sign</span></div>
+            <div><b>{s.next.days === 0 ? 'Tonight' : s.next.label}</b><span>to {s.next.what.toLowerCase()}</span></div>
           </div>
         </div>
         <div className="star-row">
@@ -128,6 +134,13 @@ export default function Today({ user, profile, onGo }) {
           )}
         </div>
       </section>
+
+      <MantraPlayer
+        key={mantraSrc ?? 'sample'}
+        title={mantraSrc ? profile.mantra_title || 'Your mantra' : SAMPLE_MANTRA_TITLE}
+        src={mantraSrc}
+        sample={!mantraSrc}
+      />
 
       <InstallHint />
 
