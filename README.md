@@ -20,14 +20,13 @@ With no Supabase keys it runs in **demo mode**: any email signs in and everythin
 
 - **Code**: this repo. Every push to `main` deploys to GitHub Pages through `.github/workflows/deploy.yml`.
 - **Database and logins**: Supabase project `cosmic-weather`. Its URL and publishable key are in `.env.production` (public by design; the database rules do the protecting).
-- **Live address**: https://jcisit.github.io/cosmic-weather/ until the custom domain is set.
+- **Live address**: https://app.joyfulpurposecoaching.com/ (custom domain set in repo Settings > Pages; DNS record `app` CNAME `jcisit.github.io` in Squarespace Domains).
 
 ## Still to do by hand
 
 1. **Supabase sign-in links**: Authentication > URL Configuration. Set Site URL to the live address and add it under Redirect URLs.
 2. **Admins**: after someone signs in once, run `update profiles set role = 'admin' where email = '...'` in the SQL Editor to give them the Studio tab.
-3. **Custom domain**: add a CNAME record `app` pointing to `jcisit.github.io` at the domain registrar, then set the custom domain in repo Settings > Pages and update the Supabase URLs to match.
-4. **Google sign-in**: create an OAuth client in Google Cloud Console and paste its ID and secret into Supabase > Authentication > Providers > Google.
+3. **Google sign-in**: create an OAuth client in Google Cloud Console and paste its ID and secret into Supabase > Authentication > Providers > Google.
 
 ## Where things live
 
